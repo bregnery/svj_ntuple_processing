@@ -18,5 +18,6 @@ setup(
     package_data  = {'svj_ntuple_processing': ['include/*']},
     include_package_data = True,
     zip_safe      = False,
-    scripts       = []
+    scripts       = [],
+    install_requires=['uproot', 'awkward', 'seutils']
     )

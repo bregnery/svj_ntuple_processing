@@ -47,7 +47,7 @@ triggers_2018 = [
     'HLT_CaloJet500_NoJetID_v',
     'HLT_CaloJet550_NoJetID_v',
     # PFJet and PFHT
-    'HLT_PFHT1050_v', # but, interestingly, not HLT_PFHT8**_v or HLT_PFHT9**_v, according to the .txt files at least
+    'HLT_PFHT1050_v',
     'HLT_PFJet500_v',
     'HLT_PFJet550_v',
     # Trim mass jetpt+HT
@@ -64,6 +64,18 @@ triggers_2018 = [
     'HLT_PFHT800_PFMET75_PFMHT75_IDTight_v',
     'HLT_PFHT800_PFMET85_PFMHT85_IDTight_v',
     ]
+
+triggers_2016 = [
+    'HLT_AK8PFHT700_TrimR0p1PT0p03Mass50_v',
+    'HLT_AK8PFJet360_TrimMass30_v',
+    'HLT_CaloJet500_NoJetID_v',
+    'HLT_PFHT900_v',
+    'HLT_PFJet450_v',
+    'HLT_PFJet500_v',
+    ]
+
+# Checked: 2017 identical to 2018
+triggers_per_year = {2016: triggers_2016, 2017: triggers_2018, 2018: triggers_2018}
 
 
 class Arrays:
@@ -108,7 +120,7 @@ class Arrays:
 
     @property
     def triggers(self):
-        return {2018: triggers_2018}[self.year]
+        return triggers_per_year[self.year]
 
 
 @contextmanager

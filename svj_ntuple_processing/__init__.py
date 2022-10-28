@@ -2,9 +2,9 @@ import os, os.path as osp, logging, pprint, uuid
 from contextlib import contextmanager
 from collections import OrderedDict
 
-import awkward as ak
 import numpy as np
 import uproot
+import awkward as ak
 
 
 INCLUDE_DIR = osp.join(osp.abspath(osp.dirname(__file__)), "include")

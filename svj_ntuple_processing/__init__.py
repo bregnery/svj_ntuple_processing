@@ -123,7 +123,7 @@ def local_copy(remote):
             # File is remote, make local copy
             must_delete = True
             local = uid() + osp.splitext(remote)[1]
-            logger.info(f'Copying {remote} -> {local}')
+            logger.info('Copying %s -> %s', remote, local)
             seutils.cp(remote, local)
             yield local
         else:
@@ -168,7 +168,7 @@ def open_root(rootfile):
         ]
 
     with local_copy(rootfile) as local:
-        tree = uproot.open(f'{local}:TreeMaker2/PreSelection')
+        tree = uproot.open(local + ':TreeMaker2/PreSelection')
         arrays = Arrays(tree.arrays(branches))
 
     # Store the order of trigger names in the array object
@@ -268,7 +268,7 @@ def filter_preselection(array):
     cutflow['preselection'] = len(a)
 
     copy.array = a
-    logger.debug(f'cutflow:\n{pprint.pformat(copy.cutflow)}')
+    logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))
     return copy
 
 
@@ -380,7 +380,7 @@ class Columns:
             cutflow_vals.append(val)
         cutflow_vals = np.array(cutflow_vals)
 
-        logger.info(f'Dumping to {outfile}')
+        logger.info('Dumping to %s', outfile)
         np.savez(
             outfile,
             arrays = self.arrays,
@@ -390,7 +390,7 @@ class Columns:
             )
 
         if do_stageout:
-            logger.info(f'Staging out {outfile} -> {remote_outfile}')
+            logger.info('Staging out %s -> %s', outfile, remote_outfile)
             seutils.cp(outfile, remote_outfile)
 
 

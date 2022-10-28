@@ -99,6 +99,28 @@ def test_columns_io_practice():
         np.testing.assert_array_equal(cols.arrays[k], cols2.arrays[k])
 
 
+def test_columns_io_remote():
+    import seutils
+    outfile = 'root://cmseos.fnal.gov//store/user/klijnsma/package_test_files/svj_ntuple_processing/test.npz'
+    if seutils.isfile(outfile): seutils.rm(outfile)
+
+    cols = svj.Columns()
+    cols.cutflow['cut1'] = 200
+    cols.cutflow['cut2'] = 100
+    cols.metadata['testkey'] = 'testval'
+    cols.metadata['testnum'] = 123
+    cols.arrays = {'arr1' : np.ones(4), 'arr2' : np.zeros(4)}
+
+    cols.save(outfile)
+    cols2 = svj.Columns.load(outfile)
+
+    assert cols.cutflow == cols2.cutflow
+    assert cols.metadata == cols2.metadata
+    assert set(cols.arrays.keys()) == set(cols2.arrays.keys())
+    for k in cols.arrays.keys():
+        np.testing.assert_array_equal(cols.arrays[k], cols2.arrays[k])
+
+
 def test_concat_columns():
     col1 = svj.Columns()
     col1.cutflow['cut1'] = 200

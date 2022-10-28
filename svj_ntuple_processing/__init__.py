@@ -351,7 +351,8 @@ class Columns:
     """
     @classmethod
     def load(cls, infile):
-        d = np.load(infile, allow_pickle=True)
+        with local_copy(infile) as local:
+            d = np.load(local, allow_pickle=True)
         inst = cls()
         inst.arrays = d['arrays'].item()
         inst.metadata = d['metadata'].item()
@@ -365,12 +366,21 @@ class Columns:
         self.cutflow = OrderedDict()
 
     def save(self, outfile):
+        import seutils
+        do_stageout = False
+        if seutils.path.has_protocol(outfile):
+            remote_outfile = outfile
+            outfile = uid() + '.npz'
+            do_stageout = True
+
         cutflow_keys = []
         cutflow_vals = []
         for key, val in self.cutflow.items():
             cutflow_keys.append(key)
             cutflow_vals.append(val)
         cutflow_vals = np.array(cutflow_vals)
+
+        logger.info(f'Dumping to {outfile}')
         np.savez(
             outfile,
             arrays = self.arrays,
@@ -378,7 +388,11 @@ class Columns:
             cutflow_keys = cutflow_keys,
             cutflow_vals = cutflow_vals
             )
-        
+
+        if do_stageout:
+            logger.info(f'Staging out {outfile} -> {remote_outfile}')
+            seutils.cp(outfile, remote_outfile)
+
 
 def concat_columns(columns):
     """

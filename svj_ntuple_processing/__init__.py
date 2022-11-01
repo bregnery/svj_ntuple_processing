@@ -404,6 +404,7 @@ class Columns:
         if do_stageout:
             logger.info('Staging out %s -> %s', outfile, remote_outfile)
             seutils.cp(outfile, remote_outfile)
+            os.remove(outfile)
 
 
 def concat_columns(columns):

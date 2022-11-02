@@ -362,9 +362,13 @@ class Columns:
     This class is designed for read/write to disk.
     """
     @classmethod
-    def load(cls, infile):
-        with local_copy(infile) as local:
-            d = np.load(local, allow_pickle=True)
+    def load(cls, infile, encoding='ASCII'):
+        try:
+            with local_copy(infile) as local:
+                d = np.load(local, allow_pickle=True, encoding=encoding)
+        except:
+            logger.error('Error opening %s', infile)
+            raise
         inst = cls()
         inst.arrays = d['arrays'].item()
         inst.metadata = d['metadata'].item()
@@ -393,6 +397,12 @@ class Columns:
         cutflow_vals = np.array(cutflow_vals)
 
         logger.info('Dumping to %s', outfile)
+
+        # Automatically create parent directory if not existent
+        outdir = osp.dirname(osp.abspath(outfile))
+        if not osp.isdir(outdir):
+            os.makedirs(outdir)
+
         np.savez(
             outfile,
             arrays = self.arrays,

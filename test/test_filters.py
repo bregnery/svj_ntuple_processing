@@ -140,3 +140,14 @@ def test_concat_columns():
     assert col.cutflow == OrderedDict(cut1=220, cut2=110)
     np.testing.assert_array_equal(col.arrays['arr1'], np.ones(8))
     np.testing.assert_array_equal(col.arrays['arr2'], np.zeros(8))
+
+
+def test_load_numpy():
+    a = svj.open_root(TESTDIR + 'madpt300_mz350_mdark10_rinv0.3.root')
+    a = svj.filter_preselection(a)
+    a = svj.filter_zprime_in_cone(a)
+    cols = svj.bdt_feature_columns(a)
+    cols.save('testcols.npz')
+
+    X = svj.load_numpy('testcols.npz', ['girth', 'ptd', 'axismajor', 'axisminor'])
+    assert X.shape == (len(cols), 4)

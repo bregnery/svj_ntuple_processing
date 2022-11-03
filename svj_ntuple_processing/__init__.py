@@ -381,6 +381,10 @@ class Columns:
         self.metadata = {}
         self.cutflow = OrderedDict()
 
+    def __len__(self):
+        for v in self.arrays.values():
+            return len(v)
+
     def save(self, outfile):
         import seutils
         do_stageout = False
@@ -415,6 +419,25 @@ class Columns:
             logger.info('Staging out %s -> %s', outfile, remote_outfile)
             seutils.cp(outfile, remote_outfile)
             os.remove(outfile)
+
+    def to_numpy(self, features=None):
+        """
+        Returns the various arrays as a rectangular numpy array.
+        If `features` is None, all features are used, sorted alphabetically.
+        """
+        if features is None: features = list(sorted(self.arrays.keys()))
+        X = []
+        for f in features:
+            X.append(self.arrays[f])
+        X = np.column_stack(X)
+        return X
+
+
+def load_numpy(infile, features):
+    """
+    Convenience function
+    """
+    return Columns.load(infile).to_numpy(features)
 
 
 def concat_columns(columns):

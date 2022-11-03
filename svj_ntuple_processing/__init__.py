@@ -457,7 +457,7 @@ def bdt_feature_columns(array):
     a['ecfn2b2'] = arr['JetsAK15_ecfN2b2'][:,1].to_numpy()
     a['metdphi'] = calc_dphi(arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy(), arr['METPhi'].to_numpy())
 
-    # Save some extra vars for potential reweighting
+    # Save some extra vars for potential reweighting / other analysis
     a['pt'] = arr['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
     a['eta'] = arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
     a['phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
@@ -466,6 +466,15 @@ def bdt_feature_columns(array):
         a['pt'], a['eta'], a['phi'], a['e'],
         arr['MET'].to_numpy(), arr['METPhi'].to_numpy()
         )
+    
     a['weight'] = arr['Weight'].to_numpy()
+    a['met'] = arr['MET'].to_numpy()
+    a['metphi'] = arr['METPhi'].to_numpy()
+
+    a['leading_pt'] = arr['JetsAK15.fCoordinates.fPt'][:,0].to_numpy()
+    a['leading_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,0].to_numpy()
+    a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
+    a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
+
     cols.arrays = a
     return cols

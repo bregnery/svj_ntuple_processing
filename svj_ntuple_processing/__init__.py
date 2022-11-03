@@ -485,7 +485,7 @@ def bdt_feature_columns(array):
     a['eta'] = arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
     a['phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
     a['e'] = arr['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
-    a['mt'], _ = calculate_mt_rt(
+    a['mt'], a['rt'] = calculate_mt_rt(
         a['pt'], a['eta'], a['phi'], a['e'],
         arr['MET'].to_numpy(), arr['METPhi'].to_numpy()
         )

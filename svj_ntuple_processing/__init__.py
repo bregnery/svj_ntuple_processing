@@ -372,6 +372,7 @@ class Columns:
         inst = cls()
         inst.arrays = d['arrays'].item()
         inst.metadata = d['metadata'].item()
+        inst.metadata['src'] = infile
         for key, val in zip(d['cutflow_keys'], d['cutflow_vals']):
             inst.cutflow[key] = val
         return inst

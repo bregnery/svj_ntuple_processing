@@ -14,7 +14,7 @@ pip install https://github.com/boostedsvj/svj_ntuple_processing/archive/main.zip
 
 ## Example: Featurizing TreeMaker Ntuples
 
-Open a file and get an `Arrays` object:
+Open a TreeMaker Ntuple root file and get an `Arrays` object:
 
 ```python
 >>> import svj_ntuple_processing as svj

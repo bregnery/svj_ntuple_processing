@@ -433,6 +433,21 @@ class Columns:
         X = np.column_stack(X)
         return X
 
+    def to_dataframe(self, features=None):
+        """
+        Returns the various arrays as a pandas.DataFrame. The self.arrays keys are used
+        as column names
+        """
+        import pandas as pd
+        return pd.DataFrame.from_dict(self.arrays)
+
+    def copy(self):
+        copy = self.__class__()
+        copy.metadata = self.metadata.copy()
+        copy.arrays = self.arrays.copy()
+        copy.cutflow = self.cutflow.copy()
+        return copy
+
 
 def load_numpy(infile, features):
     """

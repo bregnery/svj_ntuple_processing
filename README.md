@@ -86,6 +86,9 @@ array([0.16224642, 0.33115667, 0.32601607, ..., 0.29639566, 0.50617486,
 >>>
 >>> len(columns.arrays['axismajor'])
 3881
+>>>
+>>> sorted(columns.arrays.keys())
+['axismajor', 'axisminor', 'e', 'ecfc2b1', 'ecfd2b1', 'ecfm2b1', 'ecfn2b2', 'eta', 'girth', 'metdphi', 'mt', 'phi', 'pt', 'ptd', 'weight']
 ```
 
 It has copies of the metadata and the cutflow:

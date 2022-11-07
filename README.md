@@ -165,4 +165,7 @@ array([[0.21778949, 0.16224642, 0.07273197],
 >>>
 >>> columns.cutflow
 OrderedDict([('raw', 362621), ('ak8jet.pt>500', 76229), ('triggers', 75436), ('n_ak15jets>=2', 75432), ('subl_eta<2.4', 75008), ('subl_ecf>0', 73337), ('rtx>1.1', 45392), ('nleptons=0', 43728), ('metfilter', 43187), ('preselection', 43187), ('1zprime2darkquarks', 42645), ('zdq<1.5', 23005)])
+>>> 
+>>> columns.metadata
+{'year': 2018, 'madpt': 300, 'mz': 350, 'mdark': 10, 'rinv': 0.3, 'zprimecone': True, 'src': 'root://cmseos.fnal.gov//store/user/klijnsma/package_test_files/svj_ntuple_processing/madpt300_mz350_mdark10_rinv0.3.npz'}
 ```

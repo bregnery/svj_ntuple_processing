@@ -77,6 +77,9 @@ def test_columns_io_simple():
     cols2 = svj.Columns.load('testcols.npz')
 
     assert cols.cutflow == cols2.cutflow
+    # Remove src before comparison; those are expected to be different
+    cols.metadata.pop('src', None)
+    cols2.metadata.pop('src', None)
     assert cols.metadata == cols2.metadata
     assert set(cols.arrays.keys()) == set(cols2.arrays.keys())
     for k in cols.arrays.keys():
@@ -93,6 +96,9 @@ def test_columns_io_practice():
     cols2 = svj.Columns.load('testcols.npz')
 
     assert cols.cutflow == cols2.cutflow
+    # Remove src before comparison; those are expected to be different
+    cols.metadata.pop('src', None)
+    cols2.metadata.pop('src', None)
     assert cols.metadata == cols2.metadata
     assert set(cols.arrays.keys()) == set(cols2.arrays.keys())
     for k in cols.arrays.keys():
@@ -115,6 +121,9 @@ def test_columns_io_remote():
     cols2 = svj.Columns.load(outfile)
 
     assert cols.cutflow == cols2.cutflow
+    # Remove src before comparison; those are expected to be different
+    cols.metadata.pop('src', None)
+    cols2.metadata.pop('src', None)
     assert cols.metadata == cols2.metadata
     assert set(cols.arrays.keys()) == set(cols2.arrays.keys())
     for k in cols.arrays.keys():

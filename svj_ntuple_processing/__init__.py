@@ -209,7 +209,7 @@ def calc_dr(eta1, phi1, eta2, phi2):
     return np.sqrt((eta1-eta2)**2 + calc_dphi(phi1, phi2)**2)
 
 
-def calculate_mt_rt(pt, eta, phi, e, met, metphi):
+def calculate_mt(pt, eta, phi, e, met, metphi):
     """
     Calculates the transverse mass MT and RT (closely related calcs)
     """
@@ -222,8 +222,7 @@ def calculate_mt_rt(pt, eta, phi, e, met, metphi):
     pz = pt * np.sinh(eta)
     transverse_e = np.sqrt(e**2 - pz**2)
     mt = np.sqrt( (transverse_e + met)**2 - (jet_x + met_x)**2 - (jet_y + met_y)**2 )
-    rt = np.sqrt(1+ met / pt)
-    return mt, rt
+    return mt
 
 
 def filter_preselection(array):
@@ -513,19 +512,20 @@ def bdt_feature_columns(array):
     a['ecfn2b2'] = arr['JetsAK15_ecfN2b2'][:,1].to_numpy()
     a['metdphi'] = calc_dphi(arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy(), arr['METPhi'].to_numpy())
 
+    a['weight'] = arr['Weight'].to_numpy()
+    a['met'] = arr['MET'].to_numpy()
+    a['metphi'] = arr['METPhi'].to_numpy()
+
     # Save some extra vars for potential reweighting / other analysis
     a['pt'] = arr['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
     a['eta'] = arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
     a['phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
     a['e'] = arr['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
-    a['mt'], a['rt'] = calculate_mt_rt(
+    a['mt'] = calculate_mt(
         a['pt'], a['eta'], a['phi'], a['e'],
-        arr['MET'].to_numpy(), arr['METPhi'].to_numpy()
+        a['met'], a['metphi']
         )
-    
-    a['weight'] = arr['Weight'].to_numpy()
-    a['met'] = arr['MET'].to_numpy()
-    a['metphi'] = arr['METPhi'].to_numpy()
+    a['rt'] = np.sqrt(1.+a['met']/a['pt'])
 
     a['leading_pt'] = arr['JetsAK15.fCoordinates.fPt'][:,0].to_numpy()
     a['leading_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,0].to_numpy()

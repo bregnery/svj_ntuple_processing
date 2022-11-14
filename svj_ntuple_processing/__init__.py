@@ -98,7 +98,7 @@ class Arrays:
         return len(self.array)
 
     def __repr__(self):
-        return f'<Columns {pprint.pformat(self.metadata)}>'
+        return f'<Arrays {pprint.pformat(self.metadata)}>'
 
     def cut(self, cut_name):
         """Adds an entry to the cutflow list now"""
@@ -389,6 +389,9 @@ class Columns:
         for v in self.arrays.values():
             return len(v)
 
+    def __repr__(self):
+        return f'<Columns {pprint.pformat(self.metadata)}>'
+
     def save(self, outfile):
         import seutils
         do_stageout = False
@@ -476,7 +479,11 @@ def concat_columns(columns):
             # Find the column that crashed:
             for c in columns:
                 if key not in c.arrays:
-                    logger.error(f'Key {key} does not exist in columns {c}')
+                    logger.error(
+                        f'Key {key} does not exist in columns {c};'
+                        f' expected columns for concatenation: {list(columns[0].arrays.keys())};'
+                        f' available columns: {list(c.arrays.keys())}.'
+                        )
             raise
 
     # Summed cutflow

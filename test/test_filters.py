@@ -80,6 +80,7 @@ def test_columns_io_simple():
     # Remove src before comparison; those are expected to be different
     cols.metadata.pop('src', None)
     cols2.metadata.pop('src', None)
+    cols2.metadata.pop('svj_ntuple_processing_version', None)
     assert cols.metadata == cols2.metadata
     assert set(cols.arrays.keys()) == set(cols2.arrays.keys())
     for k in cols.arrays.keys():
@@ -99,6 +100,7 @@ def test_columns_io_practice():
     # Remove src before comparison; those are expected to be different
     cols.metadata.pop('src', None)
     cols2.metadata.pop('src', None)
+    cols2.metadata.pop('svj_ntuple_processing_version', None)
     assert cols.metadata == cols2.metadata
     assert set(cols.arrays.keys()) == set(cols2.arrays.keys())
     for k in cols.arrays.keys():
@@ -124,6 +126,7 @@ def test_columns_io_remote():
     # Remove src before comparison; those are expected to be different
     cols.metadata.pop('src', None)
     cols2.metadata.pop('src', None)
+    cols2.metadata.pop('svj_ntuple_processing_version', None)
     assert cols.metadata == cols2.metadata
     assert set(cols.arrays.keys()) == set(cols2.arrays.keys())
     for k in cols.arrays.keys():

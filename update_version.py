@@ -3,7 +3,7 @@ from __future__ import print_function
 import os.path as osp
 
 def update_version():
-    version_file = osp.join(osp.dirname(__file__), "svj_jobs_toolkit/include/VERSION")
+    version_file = osp.join(osp.dirname(__file__), "svj_ntuple_processing/include/VERSION")
     with open(version_file, "r") as f:
         version = f.read().strip()
     major, minor = version.rsplit(".", 1)

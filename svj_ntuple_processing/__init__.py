@@ -98,7 +98,7 @@ class Arrays:
         return len(self.array)
 
     def __repr__(self):
-        return f'<Arrays {pprint.pformat(self.metadata)}>'
+        return '<Arrays {0}>'.format(pprint.pformat(self.metadata))
 
     def cut(self, cut_name):
         """Adds an entry to the cutflow list now"""
@@ -389,7 +389,7 @@ class Columns:
             return len(v)
 
     def __repr__(self):
-        return f'<Columns {pprint.pformat(self.metadata)}>'
+        return '<Columns {0}>'.format(pprint.pformat(self.metadata))
 
     def save(self, outfile):
         import seutils
@@ -416,7 +416,7 @@ class Columns:
         np.savez(
             outfile,
             arrays = self.arrays,
-            metadata = self.metadata,
+            metadata = dict(self.metadata, svj_ntuple_processing_version=version()),
             cutflow_keys = cutflow_keys,
             cutflow_vals = cutflow_vals
             )
@@ -479,9 +479,10 @@ def concat_columns(columns):
             for c in columns:
                 if key not in c.arrays:
                     logger.error(
-                        f'Key {key} does not exist in columns {c};'
-                        f' expected columns for concatenation: {list(columns[0].arrays.keys())};'
-                        f' available columns: {list(c.arrays.keys())}.'
+                        'Key %s does not exist in columns %s;'
+                        ' expected columns for concatenation: %s;'
+                        ' available columns: {list(c.arrays.keys())}.',
+                        key, c, list(columns[0].arrays.keys())
                         )
             raise
 

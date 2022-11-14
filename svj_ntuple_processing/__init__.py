@@ -475,7 +475,7 @@ def concat_columns(columns):
         except KeyError:
             # Find the column that crashed:
             for c in columns:
-                if key not in columns.arrays:
+                if key not in c.arrays:
                     logger.error(f'Key {key} does not exist in columns {c}')
             raise
 

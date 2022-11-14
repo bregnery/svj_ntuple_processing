@@ -97,6 +97,9 @@ class Arrays:
     def __len__(self):
         return len(self.array)
 
+    def __repr__(self):
+        return f'<Columns {pprint.pformat(self.metadata)}>'
+
     def cut(self, cut_name):
         """Adds an entry to the cutflow list now"""
         self.cutflow[cut_name] = len(self)
@@ -467,7 +470,14 @@ def concat_columns(columns):
 
     # Concatenated arrays; 1 call per key
     for key in columns[0].arrays.keys():
-        cols.arrays[key] = np.concatenate([c.arrays[key] for c in columns])
+        try:
+            cols.arrays[key] = np.concatenate([c.arrays[key] for c in columns])
+        except KeyError:
+            # Find the column that crashed:
+            for c in columns:
+                if key not in columns.arrays:
+                    logger.error(f'Key {key} does not exist in columns {c}')
+            raise
 
     # Summed cutflow
     for key in columns[0].cutflow.keys():

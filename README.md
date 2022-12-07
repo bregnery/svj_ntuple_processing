@@ -6,9 +6,7 @@ This package aims to make it easy to process data for the boosted SVJ analysis.
 ## Setup
 
 ```
-python3 -m venv env
-source env/bin/activate  # Needed every time
-pip install https://github.com/boostedsvj/svj_ntuple_processing/archive/main.zip # To be put on PyPI when we're sure stuff seems to work
+pip install svj_ntuple_processing
 ```
 
 

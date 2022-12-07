@@ -432,6 +432,18 @@ class Columns:
         If `features` is None, all features are used, sorted alphabetically.
         """
         if features is None: features = list(sorted(self.arrays.keys()))
+        # Check if passed features exist in this .npz
+        missing_features = []
+        for f in features:
+            if f not in self.arrays.keys():
+                logger.error(f'Feature {f} is not available in {self}.')
+                missing_features.append(f)
+        if missing_features:
+            raise Exception(
+                f'Cannot build numpy array.'
+                f' Available features: {list(self.arrays.keys())};'
+                f' Missing requested features: {missing_features}'
+                )
         X = []
         for f in features:
             X.append(self.arrays[f])

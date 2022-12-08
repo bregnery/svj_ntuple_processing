@@ -566,7 +566,7 @@ def triggerstudy_columns(array):
     # Select all the triggers we would like to keep for further study
     trigger_names = array.trigger_branch
     trigger_set = set(triggers_2016 + triggers_2018)
-    keep_trigger_indices = np.array([(t in trigger_set) for t in trigger_names])
+    keep_trigger_mask = np.array([(t in trigger_set) for t in trigger_names])
 
     cols = Columns()
     cols.cutflow = array.cutflow
@@ -595,7 +595,7 @@ def triggerstudy_columns(array):
     cols.arrays['met'] = a['MET'].to_numpy()
     cols.arrays['weight'] = a['Weight'].to_numpy()
 
-    cols.arrays['triggers'] = a['TriggerPass'][:, keep_trigger_indices].to_numpy()
+    cols.arrays['triggers'] = a['TriggerPass'][:, keep_trigger_mask].to_numpy()
     assert cols.arrays['triggers'].shape[1] == len(cols.metadata['trigger_titles'])
     return cols
 

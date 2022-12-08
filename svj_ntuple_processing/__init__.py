@@ -166,6 +166,7 @@ def open_root(rootfile):
         'JetsAK15_ecfN2b1', 'JetsAK15_ecfN2b2',
         'JetsAK15_girth', 'JetsAK15_ptD',
         'JetsAK15_axismajor', 'JetsAK15_axisminor',
+        'HT',
         'MET', 'METPhi',
         'TriggerPass',
         'NMuons', 'NElectrons',

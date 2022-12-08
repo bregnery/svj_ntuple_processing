@@ -548,3 +548,47 @@ def bdt_feature_columns(array):
 
     cols.arrays = a
     return cols
+
+
+def triggerstudy_columns(array):
+    a = array.array # Just to avoid typing array.array everywhere
+
+    # Most triggers are not interesting for us and they take up space
+    # Select all the triggers we would like to keep for further study
+    trigger_names = array.trigger_branch
+    trigger_set = set(triggers_2016 + triggers_2018)
+    keep_trigger_indices = np.array([(t in trigger_set) for t in trigger_names])
+
+    cols = Columns()
+    cols.cutflow = array.cutflow
+    cols.metadata = array.metadata
+    cols.metadata['trigger_titles'] = [t for t in array.trigger_branch if t in trigger_set]
+
+    pt_ak8 = a['JetsAK8.fCoordinates.fPt']
+
+    cols.arrays['njets'] = ak.count(pt_ak8, axis=-1).to_numpy()
+    cols.arrays['pt'] = pt_ak8[:,0].to_numpy()
+    # cols.arrays['eta'] = a['JetsAK8.fCoordinates.fEta'][:,0].to_numpy()
+
+    # Subleading jet: Fill in NaN wherever there is no subleading jet
+    cols.arrays['pt_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
+    at_least_2_jets = ak.count(pt_ak8, axis=-1) >= 2
+    cols.arrays['pt_subl'][at_least_2_jets] = pt_ak8[at_least_2_jets][:,1].to_numpy()
+
+    # AK15 jets
+    pt_ak15 = a['JetsAK15.fCoordinates.fPt']
+    njets_ak15 = ak.count(pt_ak15, axis=-1)
+    cols.arrays['njets_ak15'] = njets_ak15
+    cols.arrays['pt_ak15'] = np.ones_like(cols.arrays['pt']) * np.nan
+    cols.arrays['pt_ak15'][njets_ak15>=1] = a['JetsAK15.fCoordinates.fPt'][:,0].to_numpy()
+    cols.arrays['pt_ak15_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
+    cols.arrays['pt_ak15_subl'][njets_ak15>=2] = a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
+
+    # Event-level variables
+    cols.arrays['ht'] = a['HT'].to_numpy()
+    cols.arrays['met'] = a['MET'].to_numpy()
+    cols.arrays['weight'] = a['Weight'].to_numpy()
+
+    cols.arrays['triggers'] = a['TriggerPass'][:, keep_trigger_indices].to_numpy()
+    assert cols.arrays['triggers'].shape[1] == len(cols.metadata['trigger_titles'])
+    return cols

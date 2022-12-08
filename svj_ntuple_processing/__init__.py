@@ -357,6 +357,15 @@ def filter_stitch(array):
     return copy
 
 
+def filter_at_least_one_ak8jet(array):
+    copy = array.copy()
+    a = copy.array
+    a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
+    copy.cutflow['>=1jets'] = len(a)
+    copy.array = a
+    return copy
+
+
 class Columns:
     """
     Class that contains a dictionary of arrays. Each array is guaranteed

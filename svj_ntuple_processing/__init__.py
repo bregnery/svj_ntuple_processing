@@ -1,4 +1,4 @@
-import os, os.path as osp, logging, pprint, uuid
+import os, os.path as osp, logging, pprint, uuid, re
 from contextlib import contextmanager
 from collections import OrderedDict
 
@@ -598,3 +598,55 @@ def triggerstudy_columns(array):
     cols.arrays['triggers'] = a['TriggerPass'][:, keep_trigger_indices].to_numpy()
     assert cols.arrays['triggers'].shape[1] == len(cols.metadata['trigger_titles'])
     return cols
+
+
+def metadata_from_filename(path):
+    """
+    Heuristic to extract physics parameters from a path and stores it in a metadata dict.
+    
+    """
+    metadata = {}
+    # SIGNAL
+    match = re.search(r'year(\d+)', path)
+    metadata['year'] = int(match.group(1)) if match else 2018
+    match = re.search(r'genjetpt(\d+)', path)
+    if match: metadata['genjetpt'] = int(match.group(1))
+    match = re.search(r'madpt(\d+)', path)
+    if match: metadata['madpt'] = int(match.group(1))
+    match = re.search(r'mz(\d+)', path)
+    if match: metadata['mz'] = int(match.group(1))
+    match = re.search(r'mdark(\d+)', path)
+    if match: metadata['mdark'] = int(match.group(1))
+    match = re.search(r'rinv(\d\.\d+)', path)
+    if match: metadata['rinv'] = float(match.group(1))
+    # BACKGROUND
+    for bkg in ['qcd', 'ttjets', 'zjets', 'wjets']:
+        if bkg in path.lower():
+            metadata['bkg'] = bkg
+            logger.debug('Determined bkg=%s', bkg)
+            if bkg == 'ttjets':
+                for ch in ['SingleLeptFromTbar', 'SingleLeptFromT', 'DiLept']:
+                    if ch in path:
+                        metadata['channel'] = ch.lower()
+                        break
+                else:
+                    metadata['channel'] = 'inclusive'
+                logger.debug('Determined channel=%s', metadata['channel'])
+            break
+    match = re.search(r'HT\-(\d+)[tT]o([\dInf]+)', path)
+    if match:
+        left = int(match.group(1))
+        right = np.inf if match.group(2) == 'Inf' else int(match.group(2))
+        metadata['ht'] = (left, right)
+        logger.debug(f'Setting ht=({metadata["ht"]})')
+    match = re.search(r'Pt_(\d+)to([\dInf]+)', path)
+    if match:
+        left = int(match.group(1))
+        right = np.inf if match.group(2) == 'Inf' else int(match.group(2))
+        metadata['pt'] = (left, right)
+        logger.debug(f'Setting pt=({metadata["pt"]})')
+    match = re.search(r'genMET\-(\d+)', path)
+    if match:
+        metadata['genmet'] = int(match.group(1))
+        logger.debug('Setting genmet=%s', metadata['genmet'])
+    return metadata

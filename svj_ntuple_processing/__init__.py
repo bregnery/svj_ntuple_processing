@@ -138,7 +138,7 @@ def local_copy(remote):
             # File is remote, make local copy
             must_delete = True
             local = uid() + osp.splitext(remote)[1]
-            logger.info('Copying %s -> %s', remote, local)
+            logger.debug('Copying %s -> %s', remote, local)
             seutils.cp(remote, local)
             yield local
         else:
@@ -633,6 +633,8 @@ def metadata_from_filename(path):
                     metadata['channel'] = 'inclusive'
                 logger.debug('Determined channel=%s', metadata['channel'])
             break
+    match = re.search(r'20ul(\d+)', path.lower())
+    if match: metadata['year'] = 2000 + int(match.group(1))
     match = re.search(r'HT\-(\d+)[tT]o([\dInf]+)', path)
     if match:
         left = int(match.group(1))

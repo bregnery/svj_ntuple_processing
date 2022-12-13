@@ -602,9 +602,16 @@ def triggerstudy_columns(array):
     cols.arrays['pt_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
     if np.any(njets>=2): cols.arrays['pt_subl'][njets>=2] = pt_ak8[njets>=2,1].to_numpy()
 
-    # Leading AK15 jets - tricky, because most events won't have a subl AK15 jet
+    # AK15 jets - tricky, because most events won't have a subl AK15 jet
     njets_ak15 = ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1)
     cols.arrays['njets_ak15'] = njets_ak15
+
+    # Leading
+    pt_ak15_lead = a['JetsAK15.fCoordinates.fPt'][(njets_ak15>=1),0].to_numpy()
+    cols.arrays['pt_ak15'] = np.ones_like(cols.arrays['pt']) * np.nan
+    cols.arrays['pt_ak15'][njets_ak15>=1] = pt_ak15_lead
+
+    # Subleading
     # Filter array: Get events with at least 2 AK15 jets, calculate MT_subl
     array_ak15 = filter_at_least_n_jets(array, n=2, cone=15)
     pt_ak15_subl = array_ak15.array['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()

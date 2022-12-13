@@ -171,4 +171,5 @@ def test_trigger_column():
     col = svj.triggerstudy_columns(a)
     assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt'].shape
     assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt_ak15_subl'].shape
+    assert col.arrays['pt_ak15'].shape == col.arrays['pt_ak15_subl'].shape
     assert np.any(np.isfinite(col.arrays['mt_ak15_subl']))

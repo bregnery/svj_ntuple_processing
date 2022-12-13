@@ -163,3 +163,12 @@ def test_load_numpy():
 
     X = svj.load_numpy('testcols.npz', ['girth', 'ptd', 'axismajor', 'axisminor'])
     assert X.shape == (len(cols), 4)
+
+
+def test_trigger_column():
+    a = svj.open_root(TESTDIR + 'madpt300_mz350_mdark10_rinv0.3.root')
+    a = svj.filter_at_least_one_ak8jet(a)
+    col = svj.triggerstudy_columns(a)
+    assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt'].shape
+    assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt_ak15_subl'].shape
+    assert np.any(np.isfinite(col.arrays['mt_ak15_subl']))

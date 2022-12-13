@@ -358,11 +358,24 @@ def filter_stitch(array):
 
 
 def filter_at_least_one_ak8jet(array):
+    return filter_at_least_n_jets(array, n=1, cone=8)
+
+
+def filter_at_least_n_jets(array, n=1, cone=8):
+    """
+    Returns an Array that has at least n jets in the ak-collection.
+    `ak` can be 4, 8, or 15.
+    """
+    if cone in [8, 15]:
+        cone = 'AK' + str(cone)
+    elif cone == 4:
+        pass
+    else:
+        raise Exception('Parameter cone should 4, 8, or 15')
+    njets = ak.count(array.array['Jets{}.fCoordinates.fPt'.format(cone)], axis=-1)
     copy = array.copy()
-    a = copy.array
-    a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
-    copy.cutflow['>=1jets'] = len(a)
-    copy.array = a
+    copy.array = copy.array[njets>=n]
+    copy.cutflow['>={}{}jets'.format(n, ak)] = len(copy.array)
     return copy
 
 
@@ -573,6 +586,14 @@ def triggerstudy_columns(array):
     cols.metadata = array.metadata
     cols.metadata['trigger_titles'] = [t for t in array.trigger_branch if t in trigger_set]
 
+    cols.arrays['triggers'] = a['TriggerPass'][:, keep_trigger_mask].to_numpy()
+    assert cols.arrays['triggers'].shape[1] == len(cols.metadata['trigger_titles'])
+
+    # Event-level variables
+    cols.arrays['ht'] = a['HT'].to_numpy()
+    cols.arrays['met'] = a['MET'].to_numpy()
+    cols.arrays['weight'] = a['Weight'].to_numpy()
+
     # AK8 jets
     pt_ak8 = a['JetsAK8.fCoordinates.fPt']
     njets = ak.count(pt_ak8, axis=-1).to_numpy()
@@ -581,22 +602,25 @@ def triggerstudy_columns(array):
     cols.arrays['pt_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
     if np.any(njets>=2): cols.arrays['pt_subl'][njets>=2] = pt_ak8[njets>=2,1].to_numpy()
 
-    # AK15 jets
-    pt_ak15 = a['JetsAK15.fCoordinates.fPt']
-    njets_ak15 = ak.count(pt_ak15, axis=-1)
+    # Leading AK15 jets - tricky, because most events won't have a subl AK15 jet
+    njets_ak15 = ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1)
     cols.arrays['njets_ak15'] = njets_ak15
-    cols.arrays['pt_ak15'] = np.ones_like(cols.arrays['pt']) * np.nan
-    if np.any(njets_ak15>=1): cols.arrays['pt_ak15'][njets_ak15>=1] = a['JetsAK15.fCoordinates.fPt'][njets_ak15>=1,0].to_numpy()
+    # Filter array: Get events with at least 2 AK15 jets, calculate MT_subl
+    array_ak15 = filter_at_least_n_jets(array, n=2, cone=15)
+    pt_ak15_subl = array_ak15.array['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
+    mt_ak15_subl = calculate_mt(
+        pt_ak15_subl,
+        array_ak15.array['JetsAK15.fCoordinates.fEta'][:,1].to_numpy(),
+        array_ak15.array['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(),
+        array_ak15.array['JetsAK15.fCoordinates.fE'][:,1].to_numpy(),
+        array_ak15.array['MET'].to_numpy(), array_ak15.array['METPhi'].to_numpy()
+        )
+    # Use NaN where there was no subl ak15 jet
+    cols.arrays['mt_ak15_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
+    cols.arrays['mt_ak15_subl'][njets_ak15>=2] = mt_ak15_subl
+    # Store pT while we're at it
     cols.arrays['pt_ak15_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
-    if np.any(njets_ak15>=2): cols.arrays['pt_ak15_subl'][njets_ak15>=2] = a['JetsAK15.fCoordinates.fPt'][njets_ak15>=2,1].to_numpy()
-
-    # Event-level variables
-    cols.arrays['ht'] = a['HT'].to_numpy()
-    cols.arrays['met'] = a['MET'].to_numpy()
-    cols.arrays['weight'] = a['Weight'].to_numpy()
-
-    cols.arrays['triggers'] = a['TriggerPass'][:, keep_trigger_mask].to_numpy()
-    assert cols.arrays['triggers'].shape[1] == len(cols.metadata['trigger_titles'])
+    cols.arrays['pt_ak15_subl'][njets_ak15>=2] = pt_ak15_subl
     return cols
 
 

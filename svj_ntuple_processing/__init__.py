@@ -157,6 +157,8 @@ def open_root(rootfile):
     Returns an Arrays object from a rootfile (unfiltered).
     """
     branches = [
+        'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
+        'Jets.fCoordinates.fPhi',
         'JetsAK8.fCoordinates.fPt',
         'JetsAK15.fCoordinates.fPt', 'JetsAK15.fCoordinates.fEta',
         'JetsAK15.fCoordinates.fPhi', 'JetsAK15.fCoordinates.fE',
@@ -233,7 +235,7 @@ def filter_preselection(array):
     
     # AK8Jet.pT>500
     a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
-    a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
+    #a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
     cutflow['ak8jet.pt>500'] = len(a)
 
     # Triggers
@@ -247,21 +249,26 @@ def filter_preselection(array):
     a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
     cutflow['n_ak15jets>=2'] = len(a)
 
+    # At least 2 AK4 jets --> deadcells study
+    a = a[ak.count(a['Jets.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak4jets>=2'] = len(a)
+
     # subleading eta < 2.4 eta
     a = a[a['JetsAK15.fCoordinates.fEta'][:,1]<2.4]
     cutflow['subl_eta<2.4'] = len(a)
 
     # positive ECF values
-    for ecf in [
-        'JetsAK15_ecfC2b1', 'JetsAK15_ecfD2b1',
-        'JetsAK15_ecfM2b1', 'JetsAK15_ecfN2b2',
-        ]:
-        a = a[a[ecf][:,1]>0.]
+    #for ecf in [
+    #    'JetsAK15_ecfC2b1', 'JetsAK15_ecfD2b1',
+    #    'JetsAK15_ecfM2b1', 'JetsAK15_ecfN2b2',
+    #    ]:
+    #    a = a[a[ecf][:,1]>0.]
     cutflow['subl_ecf>0'] = len(a)
 
     # rtx>1.1
     rtx = np.sqrt(1. + a['MET'].to_numpy() / a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy())
-    a = a[rtx>1.1]
+    #a = a[rtx>1.1]
+    a = a[rtx>1]
     cutflow['rtx>1.1'] = len(a)
 
     # lepton vetoes
@@ -567,6 +574,13 @@ def bdt_feature_columns(array):
     a['leading_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,0].to_numpy()
     a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
     a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
+
+    a['ak4_lead_eta'] = arr['Jets.fCoordinates.fEta'][:,0].to_numpy()
+    a['ak4_lead_phi'] = arr['Jets.fCoordinates.fPhi'][:,0].to_numpy()
+    a['ak4_lead_pt'] = arr['Jets.fCoordinates.fPt'][:,0].to_numpy()
+    a['ak4_subl_eta'] = arr['Jets.fCoordinates.fEta'][:,1].to_numpy()
+    a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
+    a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
 
     cols.arrays = a
     return cols

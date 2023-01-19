@@ -466,13 +466,13 @@ class Columns:
         missing_features = []
         for f in features:
             if f not in self.arrays.keys():
-                logger.error(f'Feature {f} is not available in {self}.')
+                logger.error('Feature {f} is not available in {self}.')
                 missing_features.append(f)
         if missing_features:
             raise Exception(
-                f'Cannot build numpy array.'
-                f' Available features: {list(self.arrays.keys())};'
-                f' Missing requested features: {missing_features}'
+                'Cannot build numpy array.'
+                ' Available features: {list(self.arrays.keys())};'
+                ' Missing requested features: {missing_features}'
                 )
         X = []
         for f in features:
@@ -685,13 +685,13 @@ def metadata_from_filename(path):
         left = int(match.group(1))
         right = np.inf if match.group(2) == 'Inf' else int(match.group(2))
         metadata['ht'] = (left, right)
-        logger.debug(f'Setting ht=({metadata["ht"]})')
+        logger.debug('Setting ht=({metadata["ht"]})')
     match = re.search(r'Pt_(\d+)to([\dInf]+)', path)
     if match:
         left = int(match.group(1))
         right = np.inf if match.group(2) == 'Inf' else int(match.group(2))
         metadata['pt'] = (left, right)
-        logger.debug(f'Setting pt=({metadata["pt"]})')
+        logger.debug('Setting pt=({metadata["pt"]})')
     match = re.search(r'genMET\-(\d+)', path)
     if match:
         metadata['genmet'] = int(match.group(1))

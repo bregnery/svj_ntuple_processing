@@ -122,6 +122,11 @@ class Arrays:
         # TODO: Something based on filename
 
     @property
+    def data_type(self):
+        if 'data_type' in self.metadata:
+            return self.metadata['data_type']
+
+    @property
     def triggers(self):
         return triggers_per_year[self.year]
 
@@ -175,19 +180,60 @@ def open_root(rootfile):
         'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'eeBadScFilter',
         'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
         'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
-        'Weight',
-        'madHT', 'GenMET', 
+        'Weight', 
+        'madHT', 'GenMET',
         'GenParticles_PdgId',
         'GenParticles_Status',
         'GenParticles.fCoordinates.fPt',
         'GenParticles.fCoordinates.fEta',
         'GenParticles.fCoordinates.fPhi',
-        'GenParticles.fCoordinates.fE',
-        ]
+        'GenParticles.fCoordinates.fE'
+    ]
 
     with local_copy(rootfile) as local:
         tree = uproot.open(local + ':TreeMaker2/PreSelection')
         arrays = Arrays(tree.arrays(branches))
+
+    # Store the order of trigger names in the array object
+    arrays.trigger_branch = tree['TriggerPass'].title.split(',')
+    arrays.metadata['src'] = rootfile
+    arrays.cut('raw')
+    return arrays
+
+def open_data_root(rootfile):
+    """
+    Returns an Arrays object from a rootfile (unfiltered).
+    """
+    branches = [
+        'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
+        'Jets.fCoordinates.fPhi',
+        'JetsAK8.fCoordinates.fPt',
+        'JetsAK15.fCoordinates.fPt', 'JetsAK15.fCoordinates.fEta',
+        'JetsAK15.fCoordinates.fPhi', 'JetsAK15.fCoordinates.fE',
+        'JetsAK15_ecfC2b1', 'JetsAK15_ecfC2b2',
+        'JetsAK15_ecfD2b1', 'JetsAK15_ecfD2b2',
+        'JetsAK15_ecfM2b1', 'JetsAK15_ecfM2b2',
+        'JetsAK15_ecfN2b1', 'JetsAK15_ecfN2b2',
+        'JetsAK15_girth', 'JetsAK15_ptD',
+        'JetsAK15_axismajor', 'JetsAK15_axisminor',
+        'HT',
+        'MET', 'METPhi',
+        'TriggerPass',
+        'NMuons', 'NElectrons',
+        'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'eeBadScFilter',
+        'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
+        'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
+    ]
+
+    with local_copy(rootfile) as local:
+        tree = uproot.open(local + ':TreeMaker2/PreSelection')
+        arrays = Arrays(tree.arrays(branches))
+
+    # Store the order of trigger names in the array object
+    arrays.trigger_branch = tree['TriggerPass'].title.split(',')
+    arrays.metadata['src'] = rootfile
+    arrays.cut('raw')
+    return arrays
 
     # Store the order of trigger names in the array object
     arrays.trigger_branch = tree['TriggerPass'].title.split(',')
@@ -227,16 +273,14 @@ def calculate_mt(pt, eta, phi, e, met, metphi):
     mt = np.sqrt( (transverse_e + met)**2 - (jet_x + met_x)**2 - (jet_y + met_y)**2 )
     return mt
 
-
-def filter_preselection(array):
+def cr_filter_preselection(array):
     copy = array.copy()
     a = copy.array
     cutflow = copy.cutflow
-    
+
     # AK8Jet.pT>500
     a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
-    #a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
-    cutflow['ak8jet.pt>500'] = len(a)
+    cutflow['ak8_njets>0'] = len(a)
 
     # Triggers
     trigger_indices = np.array([copy.trigger_branch.index(t) for t in copy.triggers])
@@ -244,6 +288,7 @@ def filter_preselection(array):
         trigger_decisions = a['TriggerPass'].to_numpy()[:,trigger_indices]
         a = a[(trigger_decisions == 1).any(axis=-1)]
     cutflow['triggers'] = len(a)
+
 
     # At least 2 AK15 jets
     a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
@@ -255,21 +300,13 @@ def filter_preselection(array):
 
     # subleading eta < 2.4 eta
     a = a[a['JetsAK15.fCoordinates.fEta'][:,1]<2.4]
-    cutflow['subl_eta<2.4'] = len(a)
+    cutflow['ak15j2_eta<2.4'] = len(a)
 
-    # positive ECF values
-    #for ecf in [
-    #    'JetsAK15_ecfC2b1', 'JetsAK15_ecfD2b1',
-    #    'JetsAK15_ecfM2b1', 'JetsAK15_ecfN2b2',
-    #    ]:
-    #    a = a[a[ecf][:,1]>0.]
-    cutflow['subl_ecf>0'] = len(a)
+    # leading and subleading ak4 eta < 2.4 --> deadcells study
+    a = a[a['Jets.fCoordinates.fEta'][:,0]<2.4]
+    a = a[a['Jets.fCoordinates.fEta'][:,1]<2.4]
+    cutflow['ak4j1j2_eta<2.4'] = len(a)
 
-    # rtx>1.1
-    rtx = np.sqrt(1. + a['MET'].to_numpy() / a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy())
-    #a = a[rtx>1.1]
-    a = a[rtx>1]
-    cutflow['rtx>1.1'] = len(a)
 
     # lepton vetoes
     a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
@@ -288,6 +325,76 @@ def filter_preselection(array):
         a = a[a[b]!=0] # Pass events if not 0, is that correct?
     cutflow['metfilter'] = len(a)
     cutflow['preselection'] = len(a)
+
+
+    copy.array = a
+    logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))
+    return copy
+
+
+
+def filter_preselection(array):
+    copy = array.copy()
+    a = copy.array
+    cutflow = copy.cutflow
+    
+    # AK8Jet.pT>500
+    a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
+    a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
+    cutflow['ak8jet.pt>500'] = len(a)
+
+    # Triggers
+    trigger_indices = np.array([copy.trigger_branch.index(t) for t in copy.triggers])
+    if len(a):
+        trigger_decisions = a['TriggerPass'].to_numpy()[:,trigger_indices]
+        a = a[(trigger_decisions == 1).any(axis=-1)]
+    cutflow['triggers'] = len(a)
+
+
+    # At least 2 AK15 jets
+    a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak15jets>=2'] = len(a)
+
+    # At least 2 AK4 jets --> deadcells study
+    a = a[ak.count(a['Jets.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak4jets>=2'] = len(a)
+
+    # subleading eta < 2.4 eta
+    a = a[a['JetsAK15.fCoordinates.fEta'][:,1]<2.4]
+    cutflow['subl_eta<2.4'] = len(a)
+
+    # positive ECF values
+    for ecf in [
+        'JetsAK15_ecfC2b1', 'JetsAK15_ecfD2b1',
+        'JetsAK15_ecfM2b1', 'JetsAK15_ecfN2b2',
+        ]:
+        a = a[a[ecf][:,1]>0.]
+    cutflow['subl_ecf>0'] = len(a)
+
+    # rtx>1.1
+    rtx = np.sqrt(1. + a['MET'].to_numpy() / a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy())
+    a = a[rtx>1.1]
+    cutflow['rtx>1.1'] = len(a)
+
+    # lepton vetoes
+    a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
+    cutflow['nleptons=0'] = len(a)
+
+
+    # MET filters
+    for b in [
+        'HBHENoiseFilter',
+        'HBHEIsoNoiseFilter',
+        'eeBadScFilter',
+        'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
+        'BadPFMuonFilter',
+        'BadChargedCandidateFilter',
+        'globalSuperTightHalo2016Filter',
+        ]:
+        a = a[a[b]!=0] # Pass events if not 0, is that correct?
+    cutflow['metfilter'] = len(a)
+    cutflow['preselection'] = len(a)
+
 
     copy.array = a
     logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))
@@ -535,6 +642,55 @@ def concat_columns(columns):
     return cols
 
 
+def cr_feature_columns(array):
+    """
+    Takes an Array object, calculates needed columns for the bdt training.
+    """
+    cols = Columns()
+    cols.metadata = array.metadata.copy()
+    cols.cutflow = array.cutflow.copy()
+    # Prepare features
+    arr = array.array
+    a = {}
+    a['girth'] = arr['JetsAK15_girth'][:,1].to_numpy()
+    a['ptd'] = arr['JetsAK15_ptD'][:,1].to_numpy()
+    a['axismajor'] = arr['JetsAK15_axismajor'][:,1].to_numpy()
+    a['axisminor'] = arr['JetsAK15_axisminor'][:,1].to_numpy()
+    a['ecfm2b1'] = arr['JetsAK15_ecfM2b1'][:,1].to_numpy()
+    a['ecfd2b1'] = arr['JetsAK15_ecfD2b1'][:,1].to_numpy()
+    a['ecfc2b1'] = arr['JetsAK15_ecfC2b1'][:,1].to_numpy()
+    a['ecfn2b2'] = arr['JetsAK15_ecfN2b2'][:,1].to_numpy()
+    a['metdphi'] = calc_dphi(arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy(), arr['METPhi'].to_numpy())
+
+    a['met'] = arr['MET'].to_numpy()
+    a['metphi'] = arr['METPhi'].to_numpy()
+
+    # Save some extra vars for potential reweighting / other analysis
+    a['pt'] = arr['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
+    a['eta'] = arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
+    a['phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
+    a['e'] = arr['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
+    a['mt'] = calculate_mt(
+        a['pt'], a['eta'], a['phi'], a['e'],
+        a['met'], a['metphi']
+        )
+    a['rt'] = np.sqrt(1.+a['met']/a['pt'])
+
+    a['leading_pt'] = arr['JetsAK15.fCoordinates.fPt'][:,0].to_numpy()
+    a['leading_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,0].to_numpy()
+    a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
+    a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
+
+    a['ak4_lead_eta'] = arr['Jets.fCoordinates.fEta'][:,0].to_numpy()
+    a['ak4_lead_phi'] = arr['Jets.fCoordinates.fPhi'][:,0].to_numpy()
+    a['ak4_lead_pt'] = arr['Jets.fCoordinates.fPt'][:,0].to_numpy()
+    a['ak4_subl_eta'] = arr['Jets.fCoordinates.fEta'][:,1].to_numpy()
+    a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
+    a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
+
+    cols.arrays = a
+    return cols
+
 def bdt_feature_columns(array):
     """
     Takes an Array object, calculates needed columns for the bdt training.
@@ -575,12 +731,6 @@ def bdt_feature_columns(array):
     a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
     a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
 
-    a['ak4_lead_eta'] = arr['Jets.fCoordinates.fEta'][:,0].to_numpy()
-    a['ak4_lead_phi'] = arr['Jets.fCoordinates.fPhi'][:,0].to_numpy()
-    a['ak4_lead_pt'] = arr['Jets.fCoordinates.fPt'][:,0].to_numpy()
-    a['ak4_subl_eta'] = arr['Jets.fCoordinates.fEta'][:,1].to_numpy()
-    a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
-    a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
 
     cols.arrays = a
     return cols

@@ -687,6 +687,7 @@ def cr_feature_columns(array):
     a['ak4_subl_eta'] = arr['Jets.fCoordinates.fEta'][:,1].to_numpy()
     a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
+    a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
 
     cols.arrays = a
     return cols

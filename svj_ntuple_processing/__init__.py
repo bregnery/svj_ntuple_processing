@@ -731,6 +731,7 @@ def bdt_feature_columns(array):
     a['leading_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,0].to_numpy()
     a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
     a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
+    a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
 
 
     cols.arrays = a

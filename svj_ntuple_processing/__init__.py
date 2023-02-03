@@ -187,7 +187,9 @@ def open_root(rootfile):
         'GenParticles.fCoordinates.fPt',
         'GenParticles.fCoordinates.fEta',
         'GenParticles.fCoordinates.fPhi',
-        'GenParticles.fCoordinates.fE'
+        'GenParticles.fCoordinates.fE',
+        'EcalDeadCellBoundaryEnergyFilter',
+        'EcalDeadCellTriggerPrimitiveFilter'
     ]
 
     with local_copy(rootfile) as local:
@@ -223,6 +225,7 @@ def open_data_root(rootfile):
         'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'eeBadScFilter',
         'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
         'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
+        'EcalDeadCellTriggerPrimitiveFilter', 'EcalDeadCellBoundaryEnergyFilter' 
     ]
 
     with local_copy(rootfile) as local:
@@ -688,6 +691,9 @@ def cr_feature_columns(array):
     a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
+    a['EcalDeadCellTriggerPrimitiveFilter'] = arr['EcalDeadCellTriggerPrimitiveFilter'].to_numpy()
+    a['EcalDeadCellBoundaryEnergyFilter'] = arr['EcalDeadCellBoundaryEnergyFilter'].to_numpy()
+    
 
     cols.arrays = a
     return cols
@@ -731,8 +737,16 @@ def bdt_feature_columns(array):
     a['leading_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,0].to_numpy()
     a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
     a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
-    a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
 
+    a['ak4_lead_eta'] = arr['Jets.fCoordinates.fEta'][:,0].to_numpy()
+    a['ak4_lead_phi'] = arr['Jets.fCoordinates.fPhi'][:,0].to_numpy()
+    a['ak4_lead_pt'] = arr['Jets.fCoordinates.fPt'][:,0].to_numpy()
+    a['ak4_subl_eta'] = arr['Jets.fCoordinates.fEta'][:,1].to_numpy()
+    a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
+    a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
+    a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
+    a['EcalDeadCellTriggerPrimitiveFilter'] = arr['EcalDeadCellTriggerPrimitiveFilter'].to_numpy()
+    a['EcalDeadCellBoundaryEnergyFilter'] = arr['EcalDeadCellBoundaryEnergyFilter'].to_numpy()
 
     cols.arrays = a
     return cols

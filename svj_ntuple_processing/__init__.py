@@ -78,6 +78,26 @@ triggers_2016 = [
 triggers_per_year = {2016: triggers_2016, 2017: triggers_2018, 2018: triggers_2018}
 
 
+#  ECAL DEAD CELL LOCATIONS
+# ecaldeadcells 2018 remove 5sigma
+dataqcd_eta_ecaldead={}
+dataqcd_phi_ecaldead={}
+dataqcd_eta_ecaldead[2018] = np.array([
+    -1.632, -0.768, -2.112, -1.632, -0.384,  0.864, -1.536,  1.056,
+    1.44 , -2.016,  1.824, -2.4  , -1.44 , -0.192, -0.864, -1.536,
+    0.   , -1.248,  1.152, -0.288, -2.304,  1.632,  1.728, -2.4  ,
+    -0.768,  1.248,  0.96 , -1.728, -0.192, -2.304, -0.096,  1.536,
+    -2.208,  0.096,  0.864, -0.96 , -0.576,  1.728, -1.248
+    ])
+dataqcd_phi_ecaldead[2018] = np.array([
+    0.503, -0.754, -2.513,  0.628,  0.126,  2.765, -3.142, -3.142,
+    -0.251, -2.513, -2.136, -1.508, -3.142, -2.639, -1.759, -1.257,
+    1.759, -1.257, -0.503,  0.126, -1.508, -0.628, -0.628, -1.634,
+    -2.262, -0.503,  0.628, -0.503,  0.628, -1.634,  0.88 , -1.634,
+    -1.508,  1.759,  1.634,  2.011,  2.639, -2.136,  2.765
+    ])
+
+
 class Arrays:
     """
     Container class for an awkward.Array object + metadata about it.
@@ -227,6 +247,15 @@ def calc_dphi(phi1, phi2):
     return dphi
 
 
+def calculate_mass(pt, eta, e):
+    """
+    compute mass
+    """
+    pz = pt * np.sinh(eta)
+    mass = np.sqrt(e**2 - pt**2 - pz**2)
+    return mass
+
+
 def calc_dr(eta1, phi1, eta2, phi2):
     return np.sqrt((eta1-eta2)**2 + calc_dphi(phi1, phi2)**2)
 
@@ -245,6 +274,23 @@ def calculate_mt(pt, eta, phi, e, met, metphi):
     transverse_e = np.sqrt(e**2 - pz**2)
     mt = np.sqrt( (transverse_e + met)**2 - (jet_x + met_x)**2 - (jet_y + met_y)**2 )
     return mt
+
+
+def veto_phi_spike(eta_veto, phi_veto, eta_jets, phi_jets, rad=0.01):
+    """
+    Returns an array with length of the number of jets, indicating for
+    each jet if it is vetoed (False) or is okay (True).
+    """
+    # deta is a matrix with delta_eta to every dead cell location, per jet
+    # e.g. deta[0] gives you a np.array of all delta_etas to all dead cells
+    deta = np.expand_dims(eta_jets, -1) - eta_veto
+    assert deta.shape == ( len(eta_jets), len(eta_veto) )
+    dphi = calc_dphi(np.expand_dims(phi_jets, -1), phi_veto)
+    assert dphi.shape == ( len(phi_jets), len(phi_veto) )
+    # Only True for jets that are not close to _any_ dead cell location
+    veto_mask = np.all((deta**2 + dphi**2) > rad, axis=-1)
+    assert veto_mask.shape == (len(eta_jets),)
+    return veto_mask
 
 
 def cr_filter_preselection(array):
@@ -283,12 +329,12 @@ def cr_filter_preselection(array):
     cutflow['n_ak4jets>=2'] = len(a)
 
     # subleading eta < 2.4 eta
-    a = a[a['JetsAK15.fCoordinates.fEta'][:,1]<2.4]
+    a = a[np.abs(a['JetsAK15.fCoordinates.fEta'][:,1])<2.4]
     cutflow['ak15j2_eta<2.4'] = len(a)
 
     # leading and subleading ak4 eta < 2.4 --> deadcells study
-    a = a[a['Jets.fCoordinates.fEta'][:,0]<2.4]
-    a = a[a['Jets.fCoordinates.fEta'][:,1]<2.4]
+    a = a[np.abs(a['Jets.fCoordinates.fEta'][:,0])<2.4]
+    a = a[np.abs(a['Jets.fCoordinates.fEta'][:,1])<2.4]
     cutflow['ak4j1j2_eta<2.4'] = len(a)
 
     # lepton vetoes
@@ -335,8 +381,12 @@ def filter_preselection(array):
     a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
     cutflow['n_ak15jets>=2'] = len(a)
 
+    # At least 2 AK4 jets --> deadcells study
+    a = a[ak.count(a['Jets.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak4jets>=2'] = len(a)
+
     # subleading eta < 2.4 eta
-    a = a[a['JetsAK15.fCoordinates.fEta'][:,1]<2.4]
+    a = a[np.abs(a['JetsAK15.fCoordinates.fEta'][:,1])<2.4]
     cutflow['subl_eta<2.4'] = len(a)
 
     # positive ECF values
@@ -368,6 +418,18 @@ def filter_preselection(array):
         ]:
         a = a[a[b]!=0] # Pass events if not 0, is that correct?
     cutflow['metfilter'] = len(a)
+
+    # Filter out jets that are too close to dead cells
+    ak4jet_eta = a['Jets.fCoordinates.fEta'][:,1].to_numpy()
+    ak4jet_phi = a['Jets.fCoordinates.fPhi'][:,1].to_numpy()
+    dead_cell_mask = veto_phi_spike(
+        dataqcd_eta_ecaldead[array.year], dataqcd_phi_ecaldead[array.year],
+        ak4jet_eta, ak4jet_phi,
+        rad = 0.01
+        )
+    a = a[dead_cell_mask]
+    cutflow['ecaldeadcells'] = len(a)
+
     cutflow['preselection'] = len(a)
 
     copy.array = a
@@ -376,6 +438,9 @@ def filter_preselection(array):
 
 
 def filter_zprime_in_cone(array):
+    """
+    Require both dark quarks and the zprime to be INSIDE 1.5 cone of the subleading jet
+    """
     copy = array.copy()
     a, cutflow = copy.array, copy.cutflow
 
@@ -401,6 +466,79 @@ def filter_zprime_in_cone(array):
         & (calc_dr(eta_subl, phi_subl, eta_darkquark2, phi_darkquark2)<=1.5)
         ]
     cutflow['zdq<1.5'] = len(a)
+    copy.array = a
+    return copy
+
+
+def filter_zprime_not_in_cone(array):
+    """
+    Require both dark quarks and the zprime to be OUTSIDE 1.5 cone of the subleading jet
+    """
+    copy = array.copy()
+    a, cutflow = copy.array, copy.cutflow
+
+    # at least 1 zprime particle
+    a = a[ak.sum(a['GenParticles_PdgId']==4900023, axis=-1)>=1]
+    # at least 2 dark quarks
+    a = a[ak.sum((np.abs(a['GenParticles_PdgId'])==4900101) & (a['GenParticles_Status']==71), axis=-1)>=2]
+    cutflow['1zprime2darkquarks'] = len(a)
+
+    # Require both dark quarks and the zprime to be OUTSIDE 1.5 cone of the subleading jet
+    eta_subl = a['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
+    phi_subl = a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
+    eta_zprime = a['GenParticles.fCoordinates.fEta'][a['GenParticles_PdgId']==4900023][:,0].to_numpy()
+    phi_zprime = a['GenParticles.fCoordinates.fPhi'][a['GenParticles_PdgId']==4900023][:,0].to_numpy()
+    select_darkquarks = (np.abs(a['GenParticles_PdgId'])==4900101) & (a['GenParticles_Status']==71)
+    eta_darkquark1 = a['GenParticles.fCoordinates.fEta'][select_darkquarks][:,0].to_numpy()
+    phi_darkquark1 = a['GenParticles.fCoordinates.fPhi'][select_darkquarks][:,0].to_numpy()
+    eta_darkquark2 = a['GenParticles.fCoordinates.fEta'][select_darkquarks][:,1].to_numpy()
+    phi_darkquark2 = a['GenParticles.fCoordinates.fPhi'][select_darkquarks][:,1].to_numpy()
+    a = a[
+        (calc_dr(eta_subl, phi_subl, eta_zprime, phi_zprime)>1.5)
+        & (calc_dr(eta_subl, phi_subl, eta_darkquark1, phi_darkquark1)>1.5)
+        & (calc_dr(eta_subl, phi_subl, eta_darkquark2, phi_darkquark2)>1.5)
+        ]
+
+    cutflow['zdq>1.5'] = len(a)
+    copy.array = a
+    return copy
+
+
+def filter_zprime_half_in_cone(array):
+    """
+    Require at least 1 dark quark / zprime to be OUTSIDE 1.5 cone around subjet,
+    AND     at least 1 dark quark / zprime to be INSIDE 1.5 cone around subjet
+    """
+    copy = array.copy()
+    a, cutflow = copy.array, copy.cutflow
+
+    # at least 1 zprime particle
+    a = a[ak.sum(a['GenParticles_PdgId']==4900023, axis=-1)>=1]
+    # at least 2 dark quarks
+    a = a[ak.sum((np.abs(a['GenParticles_PdgId'])==4900101) & (a['GenParticles_Status']==71), axis=-1)>=2]
+    cutflow['1zprime2darkquarks'] = len(a)
+
+    # Require at least 1 dark quark / zprime to be OUTSIDE 1.5 cone around subjet,
+    # AND     at least 1 dark quark / zprime to be INSIDE 1.5 cone around subjet
+    eta_subl = a['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
+    phi_subl = a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
+    eta_zprime = a['GenParticles.fCoordinates.fEta'][a['GenParticles_PdgId']==4900023][:,0].to_numpy()
+    phi_zprime = a['GenParticles.fCoordinates.fPhi'][a['GenParticles_PdgId']==4900023][:,0].to_numpy()
+    select_darkquarks = (np.abs(a['GenParticles_PdgId'])==4900101) & (a['GenParticles_Status']==71)
+    eta_darkquark1 = a['GenParticles.fCoordinates.fEta'][select_darkquarks][:,0].to_numpy()
+    phi_darkquark1 = a['GenParticles.fCoordinates.fPhi'][select_darkquarks][:,0].to_numpy()
+    eta_darkquark2 = a['GenParticles.fCoordinates.fEta'][select_darkquarks][:,1].to_numpy()
+    phi_darkquark2 = a['GenParticles.fCoordinates.fPhi'][select_darkquarks][:,1].to_numpy()
+    a = a[
+        ((calc_dr(eta_subl, phi_subl, eta_zprime, phi_zprime)<=1.5)
+        | (calc_dr(eta_subl, phi_subl, eta_darkquark1, phi_darkquark1)<=1.5)
+        | (calc_dr(eta_subl, phi_subl, eta_darkquark2, phi_darkquark2)<=1.5))
+        & ((calc_dr(eta_subl, phi_subl, eta_zprime, phi_zprime)>1.5)
+        | (calc_dr(eta_subl, phi_subl, eta_darkquark1, phi_darkquark1)>1.5)
+        | (calc_dr(eta_subl, phi_subl, eta_darkquark2, phi_darkquark2)>1.5))
+        ]
+
+    cutflow['half_truth'] = len(a)
     copy.array = a
     return copy
 

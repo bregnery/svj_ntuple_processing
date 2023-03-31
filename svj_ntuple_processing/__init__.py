@@ -814,7 +814,7 @@ def bdt_feature_columns(array):
     a['eta'] = arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
     a['phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
     a['e'] = arr['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
-    a['mass']calculate_mass(a['pt'], a['eta'], a['e'])
+    a['mass'] = calculate_mass(a['pt'], a['eta'], a['e'])
     a['mt'] = calculate_mt(
         a['pt'], a['eta'], a['phi'], a['e'],
         a['met'], a['metphi']

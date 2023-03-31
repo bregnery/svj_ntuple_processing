@@ -1,8 +1,8 @@
 import svj_ntuple_processing as svj
 import numpy as np
 
-variables = np.array(['leading_eta', 'leading_phi', 'leading_pt', 'ak15_lead_e', # leading ak15jets
-		      'eta', 'phi', 'rt', 'pt', 'mt', 'ak15_subl_e', 'metdphi',  # sub-leading ak15jets
+variables = np.array(['leading_eta', 'leading_phi', 'leading_pt', 'leading_e', # leading ak15jets
+		      'eta', 'phi', 'rt', 'pt', 'mt', 'e', 'metdphi',  # sub-leading ak15jets
                       'ecfc2b1', 'girth', 'ptd', 'axismajor', 'axisminor', #sub-leading ak15jets substructure variables
 		      'met', 'metphi', # met related variables
                       'ak4_subl_pt', 'ak4_subl_eta', 'ak4_subl_phi', 'ak4_lead_pt', 'ak4_lead_eta', 'ak4_lead_phi', 'ak8_lead_pt' #other general variables

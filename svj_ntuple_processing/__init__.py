@@ -805,7 +805,7 @@ def bdt_feature_columns(array):
     a['ecfn2b2'] = arr['JetsAK15_ecfN2b2'][:,1].to_numpy()
     a['metdphi'] = calc_dphi(arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), arr['METPhi'].to_numpy())
 
-    a['weight'] = arr['Weight'].to_numpy() if 'Weight' in arr else np.ones(len(arr))
+    a['weight'] = arr['Weight'].to_numpy() #if 'Weight' in arr else np.ones(len(arr))
     a['met'] = arr['MET'].to_numpy()
     a['metphi'] = arr['METPhi'].to_numpy()
 
@@ -814,6 +814,7 @@ def bdt_feature_columns(array):
     a['eta'] = arr['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
     a['phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
     a['e'] = arr['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
+    a['mass']calculate_mass(a['pt'], a['eta'], a['e'])
     a['mt'] = calculate_mt(
         a['pt'], a['eta'], a['phi'], a['e'],
         a['met'], a['metphi']
@@ -824,6 +825,7 @@ def bdt_feature_columns(array):
     a['leading_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,0].to_numpy()
     a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
     a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
+    a['leading_mass'] = calculate_mass(a['leading_pt'], a['leading_eta'], a['leading_e'])
 
     a['ak4_lead_eta'] = arr['Jets.fCoordinates.fEta'][:,0].to_numpy()
     a['ak4_lead_phi'] = arr['Jets.fCoordinates.fPhi'][:,0].to_numpy()
@@ -832,6 +834,7 @@ def bdt_feature_columns(array):
     a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
+
     a['EcalDeadCellTriggerPrimitiveFilter'] = arr['EcalDeadCellTriggerPrimitiveFilter'].to_numpy()
     a['EcalDeadCellBoundaryEnergyFilter'] = arr['EcalDeadCellBoundaryEnergyFilter'].to_numpy()
 

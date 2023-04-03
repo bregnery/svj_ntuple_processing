@@ -842,9 +842,12 @@ def bdt_feature_columns(array):
     a['PFCaloMETRatio'] = arr['PFCaloMETRatio'].to_numpy()
 
     a['GenMET'] = arr['GenMET'].to_numpy()
-    a['genjets_eta'] = arr['GenJets.fCoordinates.fEta'][:,1].to_numpy()
-    a['genjets_phi'] = arr['GenJets.fCoordinates.fPhi'][:,1].to_numpy()
-    a['genjets_pt'] = arr['GenJets.fCoordinates.fPt'][:,1].to_numpy()
+    a['subl_genjets_eta'] = arr['GenJets.fCoordinates.fEta'][:,1].to_numpy()
+    a['subl_genjets_phi'] = arr['GenJets.fCoordinates.fPhi'][:,1].to_numpy()
+    a['subl_genjets_pt'] = arr['GenJets.fCoordinates.fPt'][:,1].to_numpy()
+    a['lead_genjets_eta'] = arr['GenJets.fCoordinates.fEta'][:,0].to_numpy()
+    a['lead_genjets_phi'] = arr['GenJets.fCoordinates.fPhi'][:,0].to_numpy()
+    a['lead_genjets_pt'] = arr['GenJets.fCoordinates.fPt'][:,0].to_numpy()
 
 
     cols.arrays = a

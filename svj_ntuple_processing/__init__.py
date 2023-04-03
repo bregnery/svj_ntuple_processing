@@ -835,8 +835,17 @@ def bdt_feature_columns(array):
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
 
-    a['EcalDeadCellTriggerPrimitiveFilter'] = arr['EcalDeadCellTriggerPrimitiveFilter'].to_numpy()
-    a['EcalDeadCellBoundaryEnergyFilter'] = arr['EcalDeadCellBoundaryEnergyFilter'].to_numpy()
+    #a['EcalDeadCellTriggerPrimitiveFilter'] = arr['EcalDeadCellTriggerPrimitiveFilter'].to_numpy()
+    #a['EcalDeadCellBoundaryEnergyFilter'] = arr['EcalDeadCellBoundaryEnergyFilter'].to_numpy()
+    # QCD high MET events 
+    a['CaloMET'] = arr['CaloMET'].to_numpy()
+    a['PFCaloMETRatio'] = arr['PFCaloMETRatio'].to_numpy()
+
+    a['GenMET'] = arr['GenMET'].to_numpy()
+    a['genjets_eta'] = arr['GenJets.fCoordinates.fEta'][:,1].to_numpy()
+    a['genjets_phi'] = arr['GenJets.fCoordinates.fPhi'][:,1].to_numpy()
+    a['genjets_pt'] = arr['GenJets.fCoordinates.fPt'][:,1].to_numpy()
+
 
     cols.arrays = a
     return cols

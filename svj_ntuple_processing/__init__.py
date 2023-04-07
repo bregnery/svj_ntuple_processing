@@ -233,6 +233,7 @@ def open_root(rootfile, load_gen=True):
         # highMET events
         'CaloMET', 'PFCaloMETRatio', 'GenMET', 
         'GenJets.fCoordinates.fEta', 'GenJets.fCoordinates.fPhi', 'GenJets.fCoordinates.fPt'
+        # dead cells
         #'EcalDeadCellBoundaryEnergyFilter',
         #'EcalDeadCellTriggerPrimitiveFilter'
         ]
@@ -829,6 +830,20 @@ def bdt_feature_columns(array):
     a['leading_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,0].to_numpy()
     a['leading_e'] = arr['JetsAK15.fCoordinates.fE'][:,0].to_numpy()
     a['leading_mass'] = calculate_mass(a['leading_pt'], a['leading_eta'], a['leading_e'])
+    a['leading_mt'] = calculate_mt(
+        a['leading_pt'], a['leading_eta'], a['leading_phi'], a['leading_e'],
+        a['met'], a['metphi']
+        )
+    # third jets info
+    a['third_pt'] = arr['JetsAK15.fCoordinates.fPt'][:,2].to_numpy()
+    a['third_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,2].to_numpy()
+    a['third_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,2].to_numpy()
+    a['third_e'] = arr['JetsAK15.fCoordinates.fE'][:,2].to_numpy()
+    a['third_mass'] = calculate_mass(a['leading_pt'], a['leading_eta'], a['leading_e'])
+    a['third_mt'] = calculate_mt(
+        a['third_pt'], a['third_eta'], a['third_phi'], a['third_e'],
+        a['met'], a['metphi']
+        )
 
     a['ak4_lead_eta'] = arr['Jets.fCoordinates.fEta'][:,0].to_numpy()
     a['ak4_lead_phi'] = arr['Jets.fCoordinates.fPhi'][:,0].to_numpy()

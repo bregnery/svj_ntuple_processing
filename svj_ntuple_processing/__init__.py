@@ -809,7 +809,7 @@ def bdt_feature_columns(array):
     a['ecfn2b2'] = arr['JetsAK15_ecfN2b2'][:,1].to_numpy()
     a['metdphi'] = calc_dphi(arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), arr['METPhi'].to_numpy())
 
-    a['weight'] = arr['Weight'].to_numpy() #if 'Weight' in arr else np.ones(len(arr))
+    a['weight'] = arr['Weight'].to_numpy() if 'Weight' in arr else np.ones(len(arr))
     a['met'] = arr['MET'].to_numpy()
     a['metphi'] = arr['METPhi'].to_numpy()
 
@@ -834,16 +834,6 @@ def bdt_feature_columns(array):
         a['leading_pt'], a['leading_eta'], a['leading_phi'], a['leading_e'],
         a['met'], a['metphi']
         )
-    # third jets info
-    a['third_pt'] = arr['JetsAK15.fCoordinates.fPt'][:,2].to_numpy()
-    a['third_eta'] = arr['JetsAK15.fCoordinates.fEta'][:,2].to_numpy()
-    a['third_phi'] = arr['JetsAK15.fCoordinates.fPhi'][:,2].to_numpy()
-    a['third_e'] = arr['JetsAK15.fCoordinates.fE'][:,2].to_numpy()
-    a['third_mass'] = calculate_mass(a['leading_pt'], a['leading_eta'], a['leading_e'])
-    a['third_mt'] = calculate_mt(
-        a['third_pt'], a['third_eta'], a['third_phi'], a['third_e'],
-        a['met'], a['metphi']
-        )
 
     a['ak4_lead_eta'] = arr['Jets.fCoordinates.fEta'][:,0].to_numpy()
     a['ak4_lead_phi'] = arr['Jets.fCoordinates.fPhi'][:,0].to_numpy()
@@ -853,13 +843,11 @@ def bdt_feature_columns(array):
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
 
-    #a['EcalDeadCellTriggerPrimitiveFilter'] = arr['EcalDeadCellTriggerPrimitiveFilter'].to_numpy()
-    #a['EcalDeadCellBoundaryEnergyFilter'] = arr['EcalDeadCellBoundaryEnergyFilter'].to_numpy()
     # QCD high MET events 
     a['CaloMET'] = arr['CaloMET'].to_numpy()
     a['PFCaloMETRatio'] = arr['PFCaloMETRatio'].to_numpy()
 
-    a['GenMET'] = arr['GenMET'].to_numpy()
+    a['GenMET'] = arr['GenMET'].to_numpy() if 'GenMET' in arr else np.ones(len(arr))
     a['subl_genjets_eta'] = arr['GenJets.fCoordinates.fEta'][:,1].to_numpy()
     a['subl_genjets_phi'] = arr['GenJets.fCoordinates.fPhi'][:,1].to_numpy()
     a['subl_genjets_pt'] = arr['GenJets.fCoordinates.fPt'][:,1].to_numpy()

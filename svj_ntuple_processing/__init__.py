@@ -231,8 +231,8 @@ def open_root(rootfile, load_gen=True):
         'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
         'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
         # highMET events
-        'CaloMET', 'PFCaloMETRatio', 'GenMET', 
-        'GenJets.fCoordinates.fEta', 'GenJets.fCoordinates.fPhi', 'GenJets.fCoordinates.fPt'
+        'CaloMET', 'PFCaloMETRatio'#, 'GenMET', 
+        #'GenJets.fCoordinates.fEta', 'GenJets.fCoordinates.fPhi', 'GenJets.fCoordinates.fPt'
         # dead cells
         #'EcalDeadCellBoundaryEnergyFilter',
         #'EcalDeadCellTriggerPrimitiveFilter'

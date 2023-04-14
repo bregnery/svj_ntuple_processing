@@ -809,7 +809,8 @@ def bdt_feature_columns(array):
     a['ecfn2b2'] = arr['JetsAK15_ecfN2b2'][:,1].to_numpy()
     a['metdphi'] = calc_dphi(arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), arr['METPhi'].to_numpy())
 
-    a['weight'] = arr['Weight'].to_numpy() if 'Weight' in arr else np.ones(len(arr))
+    #a['weight'] = arr['Weight'].to_numpy() if 'Weight' in arr else np.ones(len(arr))
+    a['weight'] =arr['Weight'].to_numpy()
     a['met'] = arr['MET'].to_numpy()
     a['metphi'] = arr['METPhi'].to_numpy()
 

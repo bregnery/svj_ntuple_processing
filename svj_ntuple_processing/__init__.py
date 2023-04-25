@@ -636,6 +636,14 @@ def filter_at_least_n_jets(array, n=1, cone=8):
     copy.cutflow['>={}{}jets'.format(n, cone)] = len(copy.array)
     return copy
 
+def filter_at_least_n_muons(array, n=1):
+    nmuons = ak.count(array.array['Muons.fCoordinates.fPt'], axis=-1)
+    copy = array.copy()
+    print("num muons: ", nmuons)
+    copy.array = copy.array[nmuons>=n]
+    copy.cutflow['>={}muons'.format(n)] = len(copy.array)
+    return copy
+
 
 class Columns:
     """

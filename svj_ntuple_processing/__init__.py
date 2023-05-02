@@ -434,6 +434,14 @@ def filter_preselection(array):
     a = a[rtx>1.1]
     cutflow['rtx>1.1'] = len(a)
 
+
+    # muon pt < 1500 filter to avoid highMET events
+    #nmuons = ak.count(array.array['Muons.fCoordinates.fPt'], axis=-1) 
+    #if nmuons>0: a['Muons.fCoordinates.fPt'][:,0].to_numpy()
+    muonpt = a['Muons.fCoordinates.fPt'][:,0].to_numpy()
+    a = a[muonpt<1500]
+    cutflow['muonpt<1500'] = len(a)
+
     # lepton vetoes
     a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
     cutflow['nleptons=0'] = len(a)
@@ -459,6 +467,7 @@ def filter_preselection(array):
         ak4jet_eta, ak4jet_phi,
         rad = 0.01
         )
+
     a = a[dead_cell_mask]
     cutflow['ecaldeadcells'] = len(a)
 
@@ -858,9 +867,9 @@ def bdt_feature_columns(array):
     # QCD high MET events 
     a['CaloMET']        = arr['CaloMET'].to_numpy()
     a['PFCaloMETRatio'] = arr['PFCaloMETRatio'].to_numpy()
-    a['lead_muonpt']    = arr['Muons.fCoordinates.fPt'][:,0].to_numpy()
+    '''a['lead_muonpt']    = arr['Muons.fCoordinates.fPt'][:,0].to_numpy()
     a['lead_muoneta']   = arr['Muons.fCoordinates.fEta'][:,0].to_numpy()
-    a['lead_muonphi']   = arr['Muons.fCoordinates.fPhi'][:,0].to_numpy()
+    a['lead_muonphi']   = arr['Muons.fCoordinates.fPhi'][:,0].to_numpy()'''
     #a['lead_muoniso'] = arr['Muons_iso'][:,0].to_numpy()
     #a['lead_muonmediumID'] = arr['Muons_mediumID'][:,0].to_numpy()
     #a['subl_muonpt']    = arr['Muons.fCoordinates.fPt'][:,1].to_numpy()

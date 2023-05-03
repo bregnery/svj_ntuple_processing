@@ -436,11 +436,15 @@ def filter_preselection(array):
 
 
     # muon pt < 1500 filter to avoid highMET events
-    #nmuons = ak.count(array.array['Muons.fCoordinates.fPt'], axis=-1) 
-    #if nmuons>0: a['Muons.fCoordinates.fPt'][:,0].to_numpy()
-    muonpt = a['Muons.fCoordinates.fPt'][:,0].to_numpy()
-    a = a[muonpt<1500]
-    cutflow['muonpt<1500'] = len(a)
+    #nmuons = a[ak.count(array.array['Muons.fCoordinates.fPt'], axis=-1) >= 1]
+    b = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)>=1]
+    b = b[b['Muons.fCoordinates.fPt'][:,0]>1500.]
+    '''muonpt=0
+    print(len(nmuons))
+    if len(nmuons)>0: #a['Muons.fCoordinates.fPt'][:,0].to_numpy()
+       muonpt = a['Muons.fCoordinates.fPt'][:,0].to_numpy()
+    a = a[muonpt<1500]'''
+    cutflow['muonpt<1500'] = len(a)+len(b)
 
     # lepton vetoes
     a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
@@ -472,7 +476,7 @@ def filter_preselection(array):
     cutflow['ecaldeadcells'] = len(a)
 
     # abs(metdphi)<1.5
-    METDphi = calc_dphi(arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), arr['METPhi'].to_numpy())
+    METDphi = calc_dphi(a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), a['METPhi'].to_numpy())
     a = a[abs(METDphi)<1.5]
     cutflow['abs(metdphi)<1.5'] = len(a)
 

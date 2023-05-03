@@ -326,10 +326,10 @@ def veto_phi_spike(eta_veto, phi_veto, eta_jets, phi_jets, rad=0.01):
 
 '''def veto_high_muonpt(muonpt):
 
-    '''muon    = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)>=1]
+    muon    = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)>=1]
     no_muon = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)==0]
     mpt = muon['Muons.fCoordinates.fPt'][:,0].to_numpy()
-    muonpt = np.append(mpt,np.zeros(len(no_muon)))'''
+    muonpt = np.append(mpt,np.zeros(len(no_muon)))
 
     muonpt = a['Muons.fCoordinates.fPt']
     muonpt = ak.to_list(muonpt)

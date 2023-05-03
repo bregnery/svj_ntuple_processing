@@ -324,22 +324,6 @@ def veto_phi_spike(eta_veto, phi_veto, eta_jets, phi_jets, rad=0.01):
     return veto_mask
 
 
-'''def veto_high_muonpt(muonpt):
-
-    muon    = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)>=1]
-    no_muon = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)==0]
-    mpt = muon['Muons.fCoordinates.fPt'][:,0].to_numpy()
-    muonpt = np.append(mpt,np.zeros(len(no_muon)))
-
-    muonpt = a['Muons.fCoordinates.fPt']
-    muonpt = ak.to_list(muonpt)
-    mpt = muonpt[muonpt<1500]
-    a=ak.Array(mpt)
-
-
-    veto_muon = muonpt<1500
-    return veto_muon'''
-
 def cr_filter_preselection(array):
     """
     Preselection for the control region.
@@ -451,13 +435,7 @@ def filter_preselection(array):
 
 
     # muon pt < 1500 filter to avoid highMET events
-    muon    = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)>=1]
-    no_muon = a[ak.count(a['Muons.fCoordinates.fPt'], axis=-1)==0]
-    mpt = muon['Muons.fCoordinates.fPt'][:,0].to_numpy()
-    muonpt = np.append(mpt,np.zeros(len(no_muon)))
-    mpt = muonpt[muonpt<1500]
-    a=ak.Array(mpt)
-
+    a = a[~ak.any(a['Muons.fCoordinates.fPt'] > 1500., axis=-1)]
     cutflow['muonpt<1500'] = len(a)
 
     # lepton vetoes

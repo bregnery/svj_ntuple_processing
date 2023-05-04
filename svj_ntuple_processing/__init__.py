@@ -231,7 +231,7 @@ def open_root(rootfile, load_gen=True):
         'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
         'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
         # highMET events
-        'CaloMET', 'PFCaloMETRatio', 'GenMET', 'Weight',
+        'CaloMET', 'PFCaloMETRatio',
         'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta', 'Muons.fCoordinates.fPhi',
         #'Muons_iso','Muons_mediumID'
         ]
@@ -239,7 +239,8 @@ def open_root(rootfile, load_gen=True):
     if load_gen:
         # Only available for simulation, not data
         branches.extend([
-
+        'Weight', 
+        'madHT', 'GenMET',
         'GenParticles_PdgId',
         'GenParticles_Status',
         'GenParticles.fCoordinates.fPt',

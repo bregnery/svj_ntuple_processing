@@ -234,6 +234,9 @@ def open_root(rootfile, load_gen=True):
         'CaloMET', 'PFCaloMETRatio',
         'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta', 'Muons.fCoordinates.fPhi',
         #'Muons_iso','Muons_mediumID'
+        #for ttstitch to work
+        'Weight',
+        'madHT', 'GenMET'
         ]
 
     if load_gen:

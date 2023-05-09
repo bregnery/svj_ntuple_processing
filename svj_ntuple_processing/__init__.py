@@ -472,9 +472,9 @@ def filter_preselection(array):
     cutflow['ecaldeadcells'] = len(a)
 
     # abs(metdphi)<1.5
-    METDphi = calc_dphi(a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), a['METPhi'].to_numpy())
-    a = a[abs(METDphi)<1.5]
-    cutflow['abs(metdphi)<1.5'] = len(a)
+    #METDphi = calc_dphi(a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), a['METPhi'].to_numpy())
+    #a = a[abs(METDphi)<1.5]
+    #cutflow['abs(metdphi)<1.5'] = len(a)
 
     cutflow['preselection'] = len(a)
 

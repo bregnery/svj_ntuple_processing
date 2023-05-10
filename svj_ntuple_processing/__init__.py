@@ -5,7 +5,7 @@ from collections import OrderedDict
 import numpy as np
 import uproot
 import awkward as ak
-
+from scipy.ndimage import gaussian_filter
 
 INCLUDE_DIR = osp.join(osp.abspath(osp.dirname(__file__)), "include")
 def version():
@@ -290,6 +290,11 @@ def calculate_mass(pt, eta, e):
     mass = np.sqrt(e**2 - pt**2 - pz**2)
     return mass
 
+def calculate_rho(pt, eta, e):
+    mass = calculate_mass(pt, eta, e)
+    rho  = np.log(mass**2 / pt**2)
+    return rho
+
 
 def calc_dr(eta1, phi1, eta2, phi2):
     return np.sqrt((eta1-eta2)**2 + calc_dphi(phi1, phi2)**2)
@@ -472,14 +477,81 @@ def filter_preselection(array):
     cutflow['ecaldeadcells'] = len(a)
 
     # abs(metdphi)<1.5
-    #METDphi = calc_dphi(a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), a['METPhi'].to_numpy())
-    #a = a[abs(METDphi)<1.5]
-    #cutflow['abs(metdphi)<1.5'] = len(a)
+    METDphi = calc_dphi(a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), a['METPhi'].to_numpy())
+    a = a[abs(METDphi)<1.5]
+    cutflow['abs(metdphi)<1.5'] = len(a)
 
     cutflow['preselection'] = len(a)
 
     copy.array = a
     logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))
+    return copy
+
+def rhoddt_windowcuts(mt, pt, rho):
+    cuts = (mt>200) & (mt<1000) & (pt>110) & (pt<1500) & (rho>-4) & (rho<0)
+    return cuts
+
+def girthmap(mt, pt,rho,girth,weight):
+    cuts = rhoddt_windowcuts(mt, pt, rho)
+    C, RHO_edges, PT_edges = np.histogram2d(rho[cuts], pt[cuts], bins=49,weights=weight[cuts])
+    w, h = 50, 50
+    GIRTH_map      = [[0 for x in range(w)] for y in range(h)]
+    GIRTH = girth[cuts]
+    for i in range(len(RHO_edges)-1):
+       for j in range(len(PT_edges)-1):
+          CUT = (rho[cuts]>RHO_edges[i]) & (rho[cuts]<RHO_edges[i+1]) & (pt[cuts]>PT_edges[j]) & (pt[cuts]<PT_edges[j+1])
+          if len(GIRTH[CUT])==0: continue
+          if len(GIRTH[CUT])>0:
+             GIRTH_map[i][j]=np.percentile(GIRTH[CUT],48)
+
+    GIRTH_map_smooth = gaussian_filter(GIRTH_map,1)
+    return GIRTH_map_smooth, RHO_edges, PT_edges
+
+
+def girthddt(mt, pt,rho,girth,weight):
+    cuts = rhoddt_windowcuts(mt, pt, rho)
+    girth_map_smooth, RHO_edges, PT_edges = girthmap(mt, pt, rho, girth, weight)
+    nbins = 49
+    Pt_min, Pt_max = min(PT_edges), max(PT_edges)
+    Rho_min, Rho_max = min(RHO_edges), max(RHO_edges)
+
+    ptbin_float  = nbins*(pt-Pt_min)/(Pt_max-Pt_min) 
+    rhobin_float = nbins*(rho-Rho_min)/(Rho_max-Rho_min)
+
+    #ptbin         = np.clip(1 + ptbin_float.astype(int),   0, nbins)
+    #rhobin        = np.clip(1 + rhobin_float.astype(int),  0, nbins)
+    print('*'*10, ptbin_float, '*'*10, rhobin_float)
+    ptbin  = np.clip(1 + np.round(ptbin_float).astype(int), 0, nbins)
+    rhobin = np.clip(1 + np.round(rhobin_float).astype(int), 0, nbins)
+
+    print(ptbin, rhobin, len(ptbin), len(rhobin), len(girth), max(rhobin), max(ptbin), np.shape(girth_map_smooth))
+    girthDDT = np.array([girth[i] - girth_map_smooth[rhobin[i]-1][ptbin[i]-1] for i in range(len(girth))])
+    return girthDDT
+
+def filter_girthDDT(array):
+    copy = array.copy()
+    a, cutflow = copy.array, copy.cutflow
+    pt = a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
+    eta = a['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
+    phi = a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
+    e = a['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
+    
+    met = a['MET'].to_numpy()
+    metphi = a['METPhi'].to_numpy()
+    mt = calculate_mt(
+     pt, eta, phi, e,
+     met, metphi
+     )
+    mass = calculate_mass(pt, eta, e)
+    rho = calculate_rho(pt,eta,e)
+    girth = a['JetsAK15_girth'][:,1].to_numpy()
+    weight =a['Weight'].to_numpy()
+    a['girthddt'] = girthddt(mt, pt, rho, girth,weight)
+    
+    a = a[a['girthddt']>0]
+    
+    cutflow['girthddt>0'] = len(a)
+    copy.array = a
     return copy
 
 
@@ -844,6 +916,9 @@ def bdt_feature_columns(array):
         a['pt'], a['eta'], a['phi'], a['e'],
         a['met'], a['metphi']
         )
+
+    a['rho'] = calculate_rho(a['pt'], a['eta'], a['e'])
+    a['girthddt'] = girthddt(a['mt'], a['pt'],a['rho'],a['girth'],a['weight'])
     a['rt'] = np.sqrt(1.+a['met']/a['pt'])
 
     a['leading_pt'] = arr['JetsAK15.fCoordinates.fPt'][:,0].to_numpy()

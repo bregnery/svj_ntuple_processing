@@ -881,7 +881,7 @@ def concat_columns(columns):
     return cols
 
 
-def bdt_feature_columns(array):
+def bdt_feature_columns(array, load_gen=True):
     """
     Takes an Array object, calculates needed columns for the bdt training.
     """
@@ -901,8 +901,8 @@ def bdt_feature_columns(array):
     a['ecfn2b2'] = arr['JetsAK15_ecfN2b2'][:,1].to_numpy()
     a['metdphi'] = calc_dphi(arr['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), arr['METPhi'].to_numpy())
 
-    #a['weight'] = arr['Weight'].to_numpy() if 'Weight' in arr else np.ones(len(arr))
-    a['weight'] =arr['Weight'].to_numpy()
+    if load_gen: a['weight'] = arr['Weight'].to_numpy() #if 'Weight' in arr else np.ones(len(arr))
+    else: a['weight'] =np.ones(len(arr))
     a['met'] = arr['MET'].to_numpy()
     a['metphi'] = arr['METPhi'].to_numpy()
 
@@ -940,8 +940,8 @@ def bdt_feature_columns(array):
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
 
     # QCD high MET events 
-    a['CaloMET']        = arr['CaloMET'].to_numpy()
-    a['PFCaloMETRatio'] = arr['PFCaloMETRatio'].to_numpy()
+    #a['CaloMET']        = arr['CaloMET'].to_numpy()
+    #a['PFCaloMETRatio'] = arr['PFCaloMETRatio'].to_numpy()
     '''a['lead_muonpt']    = arr['Muons.fCoordinates.fPt'][:,0].to_numpy()
     a['lead_muoneta']   = arr['Muons.fCoordinates.fEta'][:,0].to_numpy()
     a['lead_muonphi']   = arr['Muons.fCoordinates.fPhi'][:,0].to_numpy()'''

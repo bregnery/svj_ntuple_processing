@@ -242,7 +242,7 @@ def open_root(rootfile, load_gen=True):
     if load_gen:
         # Only available for simulation, not data
         branches.extend([
-        'Weight', 
+        'Weight','puWeight'. 
         'madHT', 'GenMET',
         'GenParticles_PdgId',
         'GenParticles_Status',
@@ -938,6 +938,7 @@ def bdt_feature_columns(array, load_mc=True):
     a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
+    a['puweight'] = arr['puWeight'].to_numpy()
 
     # QCD high MET events 
     #a['CaloMET']        = arr['CaloMET'].to_numpy()

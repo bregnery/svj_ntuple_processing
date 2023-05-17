@@ -214,7 +214,7 @@ def open_root(rootfile, load_gen=True):
     branches = [
         'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
         'Jets.fCoordinates.fPhi',
-        'JetsAK8.fCoordinates.fPt',
+        'JetsAK8.fCoordinates.fPt', 'JetsAK8.fCoordinates.fEta', 'JetsAK8.fCoordinates.fPhi',
         'JetsAK15.fCoordinates.fPt', 'JetsAK15.fCoordinates.fEta',
         'JetsAK15.fCoordinates.fPhi', 'JetsAK15.fCoordinates.fE',
         'JetsAK15_ecfC2b1', 'JetsAK15_ecfC2b2',
@@ -938,6 +938,11 @@ def bdt_feature_columns(array, load_mc=True):
     a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
+    a['ak8_lead_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,0].to_numpy()
+    a['ak8_lead_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,0].to_numpy()
+    a['ak8_subl_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,1].to_numpy()
+    a['ak8_subl_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,1].to_numpy()
+    a['ak8_subl_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,1].to_numpy()
     a['puweight'] = arr['puWeight'].to_numpy()
 
     # QCD high MET events 

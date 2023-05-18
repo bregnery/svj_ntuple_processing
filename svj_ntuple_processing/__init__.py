@@ -242,7 +242,7 @@ def open_root(rootfile, load_gen=True):
     if load_gen:
         # Only available for simulation, not data
         branches.extend([
-        'Weight','puWeight'. 
+        'Weight','puWeight', 
         'madHT', 'GenMET',
         'GenParticles_PdgId',
         'GenParticles_Status',

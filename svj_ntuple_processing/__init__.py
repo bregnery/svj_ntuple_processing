@@ -681,11 +681,17 @@ def filter_stitch(array):
                 a = a[(a['madHT']<600.) & (a['GenMET']<150.)]
         else:
             # Inclusive
-            genparticle_pdgid = np.abs(a['GenParticles_PdgId'])
+            '''genparticle_pdgid = np.abs(a['GenParticles_PdgId'])
             n_leptons = (
                 ak.sum(genparticle_pdgid==11, axis=-1)
                 + ak.sum(genparticle_pdgid==13, axis=-1)
                 + ak.sum(genparticle_pdgid==15, axis=-1)
+                )'''
+            #correction for number of leptons
+            n_leptons = (
+                ak.count(a['GenElectrons.fCoordinates.fPt'], axis=-1)
+                + ak.count(a['GenMuons.fCoordinates.fPt'], axis=-1)
+                + ak.count(a['GenTaus.fCoordinates.fPt'], axis=-1)
                 )
             a = a[(a['madHT']<600.) & (n_leptons==0)]
 

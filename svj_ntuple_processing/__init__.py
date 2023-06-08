@@ -223,6 +223,8 @@ def open_root(rootfile, load_gen=True):
         'JetsAK15_ecfN2b1', 'JetsAK15_ecfN2b2',
         'JetsAK15_girth', 'JetsAK15_ptD',
         'JetsAK15_axismajor', 'JetsAK15_axisminor',
+        'JetsAK15_chargedHadronEnergyFraction', 'JetsAK15_electronEnergyFraction', 'JetsAK15_muonEnergyFraction'
+        'JetsAK15_neutralHadronEnergyFraction', 'JetsAK15_photonEnergyFraction'
         'HT',
         'MET', 'METPhi',
         'TriggerPass',
@@ -923,6 +925,12 @@ def bdt_feature_columns(array, load_mc=True):
         a['pt'], a['eta'], a['phi'], a['e'],
         a['met'], a['metphi']
         )
+
+    a['ak15_chad_ef'] = arr['JetsAK15_chargedHadronEnergyFraction'][:,1].to_numpy()
+    a['ak15_nhad_ef'] = arr['JetsAK15_neutralHadronEnergyFraction'][:,1].to_numpy()
+    a['ak15_elect_ef'] = arr['JetsAK15_electronEnergyFraction'][:,1].to_numpy()
+    a['ak15_muon_ef'] = arr['JetsAK15_muonEnergyFraction'][:,1].to_numpy()
+    a['ak15_photon_ef'] = arr['JetsAK15_photonEnergyFraction'][:,1].to_numpy()
 
     a['rho'] = calculate_rho(a['pt'], a['eta'], a['e'])
     a['girthddt'] = girthddt(a['mt'], a['pt'],a['rho'],a['girth'],a['weight'])

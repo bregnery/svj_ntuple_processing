@@ -223,8 +223,8 @@ def open_root(rootfile, load_gen=True):
         'JetsAK15_ecfN2b1', 'JetsAK15_ecfN2b2',
         'JetsAK15_girth', 'JetsAK15_ptD',
         'JetsAK15_axismajor', 'JetsAK15_axisminor',
-        'JetsAK15_chargedHadronEnergyFraction', 'JetsAK15_electronEnergyFraction', 'JetsAK15_muonEnergyFraction'
-        'JetsAK15_neutralHadronEnergyFraction', 'JetsAK15_photonEnergyFraction'
+        'JetsAK15_chargedHadronEnergyFraction', 'JetsAK15_electronEnergyFraction', 'JetsAK15_muonEnergyFraction',
+        'JetsAK15_neutralHadronEnergyFraction', 'JetsAK15_photonEnergyFraction',
         'HT',
         'MET', 'METPhi',
         'TriggerPass',

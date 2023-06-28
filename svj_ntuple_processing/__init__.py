@@ -5,7 +5,6 @@ from collections import OrderedDict
 import numpy as np
 import uproot
 import awkward as ak
-from scipy.ndimage import gaussian_filter
 
 INCLUDE_DIR = osp.join(osp.abspath(osp.dirname(__file__)), "include")
 def version():
@@ -252,6 +251,7 @@ def open_root(rootfile, load_gen=True):
         'GenParticles.fCoordinates.fEta',
         'GenParticles.fCoordinates.fPhi',
         'GenParticles.fCoordinates.fE',
+        'ScaleWeights'
         ])
 
     with local_copy(rootfile) as local:
@@ -494,6 +494,7 @@ def rhoddt_windowcuts(mt, pt, rho):
     return cuts
 
 def girthmap(mt, pt,rho,girth,weight):
+    from scipy.ndimage import gaussian_filter
     cuts = rhoddt_windowcuts(mt, pt, rho)
     C, RHO_edges, PT_edges = np.histogram2d(rho[cuts], pt[cuts], bins=49,weights=weight[cuts])
     w, h = 50, 50
@@ -522,11 +523,11 @@ def girthddt(mt, pt,rho,girth,weight):
 
     #ptbin         = np.clip(1 + ptbin_float.astype(int),   0, nbins)
     #rhobin        = np.clip(1 + rhobin_float.astype(int),  0, nbins)
-    print('*'*10, ptbin_float, '*'*10, rhobin_float)
+    # print('*'*10, ptbin_float, '*'*10, rhobin_float)
     ptbin  = np.clip(1 + np.round(ptbin_float).astype(int), 0, nbins)
     rhobin = np.clip(1 + np.round(rhobin_float).astype(int), 0, nbins)
 
-    print(ptbin, rhobin, len(ptbin), len(rhobin), len(girth), max(rhobin), max(ptbin), np.shape(girth_map_smooth))
+    # print(ptbin, rhobin, len(ptbin), len(rhobin), len(girth), max(rhobin), max(ptbin), np.shape(girth_map_smooth))
     girthDDT = np.array([girth[i] - girth_map_smooth[rhobin[i]-1][ptbin[i]-1] for i in range(len(girth))])
     return girthDDT
 
@@ -889,7 +890,7 @@ def concat_columns(columns):
     return cols
 
 
-def bdt_feature_columns(array, load_mc=True):
+def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
     """
     Takes an Array object, calculates needed columns for the bdt training.
     """
@@ -955,10 +956,13 @@ def bdt_feature_columns(array, load_mc=True):
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
     a['ak8_lead_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,0].to_numpy()
     a['ak8_lead_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,0].to_numpy()
-    a['ak8_subl_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,1].to_numpy()
-    a['ak8_subl_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,1].to_numpy()
-    a['ak8_subl_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,1].to_numpy()
+    # a['ak8_subl_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,1].to_numpy()
+    # a['ak8_subl_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,1].to_numpy()
+    # a['ak8_subl_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,1].to_numpy()
     a['puweight'] = arr['puWeight'].to_numpy()
+
+    if save_scale_weights:
+        a['scaleweights'] = arr['ScaleWeights'].to_numpy()
 
     # QCD high MET events 
     #a['CaloMET']        = arr['CaloMET'].to_numpy()

@@ -996,7 +996,7 @@ def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
 cr_feature_columns = bdt_feature_columns
 
 
-def triggerstudy_columns(array):
+def triggerstudy_columns(array, is_mc=True):
     a = array.array # Just to avoid typing array.array everywhere
 
     # Most triggers are not interesting for us and they take up space
@@ -1016,7 +1016,7 @@ def triggerstudy_columns(array):
     # Event-level variables
     cols.arrays['ht'] = a['HT'].to_numpy()
     cols.arrays['met'] = a['MET'].to_numpy()
-    cols.arrays['weight'] = a['Weight'].to_numpy()
+    if is_mc: cols.arrays['weight'] = a['Weight'].to_numpy()
 
     # AK8 jets
     pt_ak8 = a['JetsAK8.fCoordinates.fPt']

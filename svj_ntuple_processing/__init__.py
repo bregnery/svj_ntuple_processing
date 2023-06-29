@@ -1022,7 +1022,9 @@ def triggerstudy_columns(array, is_mc=True):
     pt_ak8 = a['JetsAK8.fCoordinates.fPt']
     njets = ak.count(pt_ak8, axis=-1).to_numpy()
     cols.arrays['njets'] = njets
-    cols.arrays['pt'] = pt_ak8[:,0].to_numpy()
+
+    cols.arrays['pt'] = np.ones_like(njets) * np.nan
+    if np.any(njets>=1): cols.arrays['pt'][njets>=1] = pt_ak8[njets>=1,0].to_numpy()
     cols.arrays['pt_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
     if np.any(njets>=2): cols.arrays['pt_subl'][njets>=2] = pt_ak8[njets>=2,1].to_numpy()
 

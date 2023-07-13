@@ -8,7 +8,13 @@ TESTDIR = osp.dirname(osp.abspath(__file__))
 if not TESTDIR.endswith('/'): TESTDIR += '/'
 
 
-def test_preselection():
+# svj.BRANCHES_GENONLY.remove('ScaleWeights') # Branch not included in test files
+# svj.BRANCHES_GENONLY.remove('GenElectrons.fCoordinates.fPt')
+# svj.BRANCHES_GENONLY.remove('GenMuons.fCoordinates.fPt')
+# svj.BRANCHES_GENONLY.remove('GenTaus.fCoordinates.fPt')
+
+
+def test_preselection_local():
     a = svj.open_root(TESTDIR + 'madpt300_mz350_mdark10_rinv0.3.root')
     len_a_prefilter = len(a)
     a = svj.filter_preselection(a)
@@ -168,8 +174,9 @@ def test_load_numpy():
 def test_trigger_column():
     a = svj.open_root(TESTDIR + 'madpt300_mz350_mdark10_rinv0.3.root')
     a = svj.filter_at_least_one_ak8jet(a)
-    col = svj.triggerstudy_columns(a)
+    col = svj.triggerstudy_columns(a, single_muon_trigs=True)
     assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt'].shape
     assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt_ak15_subl'].shape
     assert col.arrays['pt_ak15'].shape == col.arrays['pt_ak15_subl'].shape
     assert np.any(np.isfinite(col.arrays['mt_ak15_subl']))
+    assert 'HLT_Mu50_v' in col.metadata['trigger_titles']

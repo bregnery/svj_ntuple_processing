@@ -206,53 +206,59 @@ def local_copy(remote):
                 pass
 
 
+BRANCHES = [
+    'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
+    'Jets.fCoordinates.fPhi',
+    'JetsAK8.fCoordinates.fPt', 'JetsAK8.fCoordinates.fEta', 'JetsAK8.fCoordinates.fPhi',
+    'JetsAK15.fCoordinates.fPt', 'JetsAK15.fCoordinates.fEta',
+    'JetsAK15.fCoordinates.fPhi', 'JetsAK15.fCoordinates.fE',
+    'JetsAK15_ecfC2b1', 'JetsAK15_ecfC2b2',
+    'JetsAK15_ecfD2b1', 'JetsAK15_ecfD2b2',
+    'JetsAK15_ecfM2b1', 'JetsAK15_ecfM2b2',
+    'JetsAK15_ecfN2b1', 'JetsAK15_ecfN2b2',
+    'JetsAK15_girth', 'JetsAK15_ptD',
+    'JetsAK15_axismajor', 'JetsAK15_axisminor',
+    'JetsAK15_chargedHadronEnergyFraction', 'JetsAK15_electronEnergyFraction', 'JetsAK15_muonEnergyFraction',
+    'JetsAK15_neutralHadronEnergyFraction', 'JetsAK15_photonEnergyFraction',
+    'HT',
+    'MET', 'METPhi',
+    'TriggerPass',
+    'NMuons', 'NElectrons',
+    'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'eeBadScFilter',
+    'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
+    'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
+    # highMET events
+    'CaloMET', 'PFCaloMETRatio',
+    'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta', 'Muons.fCoordinates.fPhi',
+    #'Muons_iso','Muons_mediumID'
+    #for ttstitch to work
+    #'Weight',
+    #'madHT', 'GenMET'
+    ]
+
+BRANCHES_GENONLY = [
+    'Weight', 'puWeight', 
+    'madHT', 'GenMET',
+    'GenParticles_PdgId',
+    'GenParticles_Status',
+    'GenParticles.fCoordinates.fPt',
+    'GenParticles.fCoordinates.fEta',
+    'GenParticles.fCoordinates.fPhi',
+    'GenParticles.fCoordinates.fE',
+    'GenElectrons.fCoordinates.fPt',
+    'GenMuons.fCoordinates.fPt',
+    'GenTaus.fCoordinates.fPt',
+    'ScaleWeights'
+    ]
+
+
 def open_root(rootfile, load_gen=True):
     """
     Returns an Arrays object from a rootfile (unfiltered).
     """
-    branches = [
-        'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
-        'Jets.fCoordinates.fPhi',
-        'JetsAK8.fCoordinates.fPt', 'JetsAK8.fCoordinates.fEta', 'JetsAK8.fCoordinates.fPhi',
-        'JetsAK15.fCoordinates.fPt', 'JetsAK15.fCoordinates.fEta',
-        'JetsAK15.fCoordinates.fPhi', 'JetsAK15.fCoordinates.fE',
-        'JetsAK15_ecfC2b1', 'JetsAK15_ecfC2b2',
-        'JetsAK15_ecfD2b1', 'JetsAK15_ecfD2b2',
-        'JetsAK15_ecfM2b1', 'JetsAK15_ecfM2b2',
-        'JetsAK15_ecfN2b1', 'JetsAK15_ecfN2b2',
-        'JetsAK15_girth', 'JetsAK15_ptD',
-        'JetsAK15_axismajor', 'JetsAK15_axisminor',
-        'JetsAK15_chargedHadronEnergyFraction', 'JetsAK15_electronEnergyFraction', 'JetsAK15_muonEnergyFraction',
-        'JetsAK15_neutralHadronEnergyFraction', 'JetsAK15_photonEnergyFraction',
-        'HT',
-        'MET', 'METPhi',
-        'TriggerPass',
-        'NMuons', 'NElectrons',
-        'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'eeBadScFilter',
-        'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
-        'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
-        # highMET events
-        'CaloMET', 'PFCaloMETRatio',
-        'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta', 'Muons.fCoordinates.fPhi',
-        #'Muons_iso','Muons_mediumID'
-        #for ttstitch to work
-        #'Weight',
-        #'madHT', 'GenMET'
-        ]
-
-    if load_gen:
-        # Only available for simulation, not data
-        branches.extend([
-        'Weight','puWeight', 
-        'madHT', 'GenMET',
-        'GenParticles_PdgId',
-        'GenParticles_Status',
-        'GenParticles.fCoordinates.fPt',
-        'GenParticles.fCoordinates.fEta',
-        'GenParticles.fCoordinates.fPhi',
-        'GenParticles.fCoordinates.fE',
-        'ScaleWeights'
-        ])
+    branches = BRANCHES.copy()
+    # Only available for simulation, not data
+    if load_gen: branches.extend(BRANCHES_GENONLY)
 
     with local_copy(rootfile) as local:
         tree = uproot.open(local + ':TreeMaker2/PreSelection')
@@ -996,13 +1002,20 @@ def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
 cr_feature_columns = bdt_feature_columns
 
 
-def triggerstudy_columns(array, is_mc=True):
+def triggerstudy_columns(array, is_mc=True, single_muon_trigs=False):
     a = array.array # Just to avoid typing array.array everywhere
 
     # Most triggers are not interesting for us and they take up space
     # Select all the triggers we would like to keep for further study
     trigger_names = array.trigger_branch
     trigger_set = set(triggers_2016 + triggers_2018)
+    if single_muon_trigs:
+        trigger_set.update({
+            'HLT_Mu50_IsoVVVL_PFHT400_v',
+            'HLT_Mu50_IsoVVVL_PFHT450_v',
+            'HLT_Mu50_v',
+            'HLT_TkMu50_v',
+            })
     keep_trigger_mask = np.array([(t in trigger_set) for t in trigger_names])
 
     cols = Columns()

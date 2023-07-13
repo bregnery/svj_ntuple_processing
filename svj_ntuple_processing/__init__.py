@@ -256,7 +256,7 @@ def open_root(rootfile, load_gen=True):
     """
     Returns an Arrays object from a rootfile (unfiltered).
     """
-    branches = BRANCHES.copy()
+    branches = BRANCHES[:]
     # Only available for simulation, not data
     if load_gen: branches.extend(BRANCHES_GENONLY)
 

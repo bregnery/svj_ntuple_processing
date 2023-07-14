@@ -180,3 +180,12 @@ def test_trigger_column():
     assert col.arrays['pt_ak15'].shape == col.arrays['pt_ak15_subl'].shape
     assert np.any(np.isfinite(col.arrays['mt_ak15_subl']))
     assert 'HLT_Mu50_v' in col.metadata['trigger_titles']
+
+
+def test_singlemuon_cr():
+    # f = 'root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV20/Run2018A-UL2018-v3/SingleMuon/954_RA2AnalysisTree.root'
+    # a = svj.open_root(f, load_gen=False)
+    a = svj.open_root(TESTDIR + 'data2018_singlemuon.root', load_gen=False)
+    a = svj.filter_preselection(a, select_muon=True)
+    print(a.cutflow)
+    # raise 0

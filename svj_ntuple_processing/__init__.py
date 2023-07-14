@@ -229,11 +229,12 @@ BRANCHES = [
     'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
     # highMET events
     'CaloMET', 'PFCaloMETRatio',
-    'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta', 'Muons.fCoordinates.fPhi',
-    #'Muons_iso','Muons_mediumID'
-    #for ttstitch to work
-    #'Weight',
-    #'madHT', 'GenMET'
+    # Muon stuff
+    'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta',
+    'Muons.fCoordinates.fPhi', 'Muons.fCoordinates.fE',
+    'Muons_iso', 'Muons_mediumID',
+    'HLTMuonObjects.fCoordinates.fPt', 'HLTMuonObjects.fCoordinates.fEta',
+    'HLTMuonObjects.fCoordinates.fPhi', 'HLTMuonObjects.fCoordinates.fE',
     ]
 
 BRANCHES_GENONLY = [
@@ -408,7 +409,13 @@ def cr_filter_preselection(array):
     return copy
 
 
-def filter_preselection(array):
+def filter_preselection(array, select_muon=False):
+    """Apply the preselection on the array.
+
+    Args:
+        select_muon (bool): If true, *selects* a muon instead of applying the lepton
+            veto.
+    """
     copy = array.copy()
     a = copy.array
     cutflow = copy.cutflow
@@ -455,9 +462,34 @@ def filter_preselection(array):
     a = a[~ak.any(a['Muons.fCoordinates.fPt'] > 1500., axis=-1)]
     cutflow['muonpt<1500'] = len(a)
 
-    # lepton vetoes
-    a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
-    cutflow['nleptons=0'] = len(a)
+    if select_muon:
+        # apply preselection - muon veto + muon selection
+        # (used medium ID + pt > 50 GeV + iso < 0.2 in EXO-19-020,
+        #  see AN-19-061 section 4.2)
+        # require the selected muon to match with the HLT muon object
+        # (which should be saved in the SingleMuon ntuples) by ΔR < 0.2
+        a = a[a['NMuons']>=1]
+        print(a['Muons_iso'])
+        print(a['Muons_mediumID'])
+        if len(a):
+            a = a[
+                (a['Muons_mediumID'][:,0])
+                & (a['Muons.fCoordinates.fPt'][:,0]>50.)
+                & (a['Muons_iso'][:,0]<.2) 
+                ]
+        if len(a):
+            a = a[ak.count(a['HLTMuonObjects.fCoordinates.fPt'], axis=-1) >= 1]
+            a = a[calc_dr(
+                a['Muons.fCoordinates.fPt'][:,0].to_numpy(),
+                a['Muons.fCoordinates.fEta'][:,0].to_numpy(),
+                a['HLTMuonObjects.fCoordinates.fPt'][:,0].to_numpy(),
+                a['HLTMuonObjects.fCoordinates.fEta'][:,0].to_numpy(),
+                ) < .2]
+        cutflow['singlemuon'] = len(a)
+    else:
+        # lepton vetoes
+        a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
+        cutflow['nleptons=0'] = len(a)
 
     # MET filters
     for b in [

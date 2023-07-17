@@ -409,28 +409,30 @@ def cr_filter_preselection(array):
     return copy
 
 
-def filter_preselection(array, select_muon=False):
+def filter_preselection(array, single_muon_cr=False):
     """Apply the preselection on the array.
 
     Args:
-        select_muon (bool): If true, *selects* a muon instead of applying the lepton
-            veto.
+        single_muon_cr (bool): If true, *selects* a muon instead of applying the lepton
+            veto. Disables the AK8Jet.pT cut and the triggers, since this mode is used
+            to study the trigger efficiencies.
     """
     copy = array.copy()
     a = copy.array
     cutflow = copy.cutflow
     
-    # AK8Jet.pT>500
-    a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
-    a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
-    cutflow['ak8jet.pt>500'] = len(a)
+    if not single_muon_cr:
+        # AK8Jet.pT>500
+        a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
+        a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
+        cutflow['ak8jet.pt>500'] = len(a)
 
-    # Triggers
-    trigger_indices = np.array([copy.trigger_branch.index(t) for t in copy.triggers])
-    if len(a):
-        trigger_decisions = a['TriggerPass'].to_numpy()[:,trigger_indices]
-        a = a[(trigger_decisions == 1).any(axis=-1)]
-    cutflow['triggers'] = len(a)
+        # Triggers
+        trigger_indices = np.array([copy.trigger_branch.index(t) for t in copy.triggers])
+        if len(a):
+            trigger_decisions = a['TriggerPass'].to_numpy()[:,trigger_indices]
+            a = a[(trigger_decisions == 1).any(axis=-1)]
+        cutflow['triggers'] = len(a)
 
     # At least 2 AK15 jets
     a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
@@ -462,7 +464,7 @@ def filter_preselection(array, select_muon=False):
     a = a[~ak.any(a['Muons.fCoordinates.fPt'] > 1500., axis=-1)]
     cutflow['muonpt<1500'] = len(a)
 
-    if select_muon:
+    if single_muon_cr:
         # apply preselection - muon veto + muon selection
         # (used medium ID + pt > 50 GeV + iso < 0.2 in EXO-19-020,
         #  see AN-19-061 section 4.2)
@@ -526,6 +528,7 @@ def filter_preselection(array, select_muon=False):
     copy.array = a
     logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))
     return copy
+
 
 def rhoddt_windowcuts(mt, pt, rho):
     cuts = (mt>200) & (mt<1000) & (pt>110) & (pt<1500) & (rho>-4) & (rho<0)

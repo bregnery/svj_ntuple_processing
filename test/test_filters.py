@@ -186,6 +186,8 @@ def test_singlemuon_cr():
     # f = 'root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV20/Run2018A-UL2018-v3/SingleMuon/954_RA2AnalysisTree.root'
     # a = svj.open_root(f, load_gen=False)
     a = svj.open_root(TESTDIR + 'data2018_singlemuon.root', load_gen=False)
-    a = svj.filter_preselection(a, select_muon=True)
-    print(a.cutflow)
+    a = svj.filter_preselection(a, single_muon_cr=True)
+    assert 'singlemuon' in a.cutflow
+    assert 'triggers' not in a.cutflow
+    assert 'ak8jet.pt>500' not in a.cutflow
     # raise 0

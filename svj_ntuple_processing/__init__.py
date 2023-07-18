@@ -74,7 +74,7 @@ triggers_2016 = [
     'HLT_PFHT900_v',
     'HLT_PFJet450_v',
     'HLT_PFJet500_v',
-    'HLT_PFHT800_v'
+    'HLT_PFHT800_v',
     # MET:
     'HLT_PFHT300_PFMET100_v',
     'HLT_PFHT300_PFMET110_v',

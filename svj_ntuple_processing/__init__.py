@@ -1052,7 +1052,7 @@ def triggerstudy_columns(array, is_mc=True, single_muon_trigs=False):
     # Most triggers are not interesting for us and they take up space
     # Select all the triggers we would like to keep for further study
     trigger_names = array.trigger_branch
-    trigger_set = set(triggers_2016 + triggers_2018)
+    trigger_set = set(triggers_2016 + triggers_2017 + triggers_2018)
     if single_muon_trigs:
         trigger_set.update({
             'HLT_Mu50_IsoVVVL_PFHT400_v',

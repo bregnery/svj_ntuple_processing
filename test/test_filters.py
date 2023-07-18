@@ -190,4 +190,6 @@ def test_singlemuon_cr():
     assert 'singlemuon' in a.cutflow
     assert 'triggers' not in a.cutflow
     assert 'ak8jet.pt>500' not in a.cutflow
+    col = svj.triggerstudy_columns(a, is_mc=False, single_muon_trigs=True)
+    assert 'HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v' in col.metadata['trigger_titles']
     # raise 0

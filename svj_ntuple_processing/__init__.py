@@ -1060,6 +1060,13 @@ def triggerstudy_columns(array, is_mc=True, single_muon_trigs=False):
             'HLT_Mu50_v',
             'HLT_TkMu50_v',
             })
+    # Save some more to be sure - not sure if needed
+    trigger_set.update({
+        'HLT_AK8PFJet360_TrimMass30_v',            # 2017 TrimMass trigger?
+        'HLT_PFMETTypeOne120_PFMHT120_IDTight_v',  # 2017 MET trigger?
+        'HLT_PFMET120_PFMHT120_IDTight_v',         # 2018 MET trigger?
+        'HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v', # 2018 MET trigger?
+        })
     keep_trigger_mask = np.array([(t in trigger_set) for t in trigger_names])
 
     cols = Columns()

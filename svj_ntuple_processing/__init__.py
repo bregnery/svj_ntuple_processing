@@ -488,6 +488,8 @@ def filter_preselection(array, single_muon_cr=False):
                 a['HLTMuonObjects.fCoordinates.fEta'][:,0].to_numpy(),
                 ) < .2]
         cutflow['singlemuon'] = len(a)
+        a = a[a['NElectrons']==0]
+        cutflow['nelectrons=0'] = len(a)
     else:
         # lepton vetoes
         a = a[(a['NMuons']==0) & (a['NElectrons']==0)]

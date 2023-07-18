@@ -64,6 +64,9 @@ triggers_2018 = [
     'HLT_PFHT800_PFMET85_PFMHT85_IDTight_v',
     ]
 
+triggers_2017 = triggers_2018[:]
+triggers_2017.append('HLT_AK8PFJet360_TrimMass30_v')
+
 triggers_2016 = [
     'HLT_AK8PFHT700_TrimR0p1PT0p03Mass50_v',
     'HLT_AK8PFJet360_TrimMass30_v',
@@ -71,10 +74,14 @@ triggers_2016 = [
     'HLT_PFHT900_v',
     'HLT_PFJet450_v',
     'HLT_PFJet500_v',
+    'HLT_PFHT800_v'
+    # MET:
+    'HLT_PFHT300_PFMET100_v',
+    'HLT_PFHT300_PFMET110_v',
     ]
 
 # Checked: 2017 identical to 2018
-triggers_per_year = {2016: triggers_2016, 2017: triggers_2018, 2018: triggers_2018}
+triggers_per_year = {2016: triggers_2016, 2017: triggers_2017, 2018: triggers_2018}
 
 
 #  ECAL DEAD CELL LOCATIONS

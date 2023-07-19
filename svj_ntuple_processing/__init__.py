@@ -478,8 +478,6 @@ def filter_preselection(array, single_muon_cr=False):
         # require the selected muon to match with the HLT muon object
         # (which should be saved in the SingleMuon ntuples) by ΔR < 0.2
         a = a[a['NMuons']>=1]
-        print(a['Muons_iso'])
-        print(a['Muons_mediumID'])
         if len(a):
             a = a[
                 (a['Muons_mediumID'][:,0])
@@ -1046,28 +1044,32 @@ def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
 cr_feature_columns = bdt_feature_columns
 
 
-def triggerstudy_columns(array, is_mc=True, single_muon_trigs=False):
+def triggerstudy_columns(array, is_mc=True, single_muon_trigs=False, all_triggers=False):
     a = array.array # Just to avoid typing array.array everywhere
 
-    # Most triggers are not interesting for us and they take up space
-    # Select all the triggers we would like to keep for further study
     trigger_names = array.trigger_branch
-    trigger_set = set(triggers_2016 + triggers_2017 + triggers_2018)
-    if single_muon_trigs:
+
+    if all_triggers:
+        trigger_set = set(trigger_names)
+        keep_trigger_mask = np.ones(len(trigger_names), dtype=bool)
+    else:
+        # Most triggers are not interesting for us and they take up space
+        # Select all the triggers we would like to keep for further study
+        trigger_set = set(triggers_2016 + triggers_2017 + triggers_2018)
+        if single_muon_trigs:
+            trigger_set.update({
+                'HLT_Mu50_IsoVVVL_PFHT400_v',
+                'HLT_Mu50_IsoVVVL_PFHT450_v',
+                'HLT_Mu50_v',
+                'HLT_TkMu50_v',
+                })
+        # Save some more to be sure - not sure if needed
         trigger_set.update({
-            'HLT_Mu50_IsoVVVL_PFHT400_v',
-            'HLT_Mu50_IsoVVVL_PFHT450_v',
-            'HLT_Mu50_v',
-            'HLT_TkMu50_v',
+            'HLT_PFMETTypeOne120_PFMHT120_IDTight_v',  # 2017 MET trigger?
+            'HLT_PFMET120_PFMHT120_IDTight_v',         # 2018 MET trigger?
+            'HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v', # 2018 MET trigger?
             })
-    # Save some more to be sure - not sure if needed
-    trigger_set.update({
-        'HLT_AK8PFJet360_TrimMass30_v',            # 2017 TrimMass trigger?
-        'HLT_PFMETTypeOne120_PFMHT120_IDTight_v',  # 2017 MET trigger?
-        'HLT_PFMET120_PFMHT120_IDTight_v',         # 2018 MET trigger?
-        'HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v', # 2018 MET trigger?
-        })
-    keep_trigger_mask = np.array([(t in trigger_set) for t in trigger_names])
+        keep_trigger_mask = np.array([(t in trigger_set) for t in trigger_names])
 
     cols = Columns()
     cols.cutflow = array.cutflow

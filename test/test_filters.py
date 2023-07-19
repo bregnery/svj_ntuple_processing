@@ -183,13 +183,13 @@ def test_trigger_column():
 
 
 def test_singlemuon_cr():
+    f = TESTDIR + 'data2018_singlemuon.root'
     # f = 'root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV20/Run2018A-UL2018-v3/SingleMuon/954_RA2AnalysisTree.root'
-    # a = svj.open_root(f, load_gen=False)
-    a = svj.open_root(TESTDIR + 'data2018_singlemuon.root', load_gen=False)
+    a = svj.open_root(f, load_gen=False)
     a = svj.filter_preselection(a, single_muon_cr=True)
     assert 'singlemuon' in a.cutflow
     assert 'triggers' not in a.cutflow
     assert 'ak8jet.pt>500' not in a.cutflow
-    col = svj.triggerstudy_columns(a, is_mc=False, single_muon_trigs=True)
+    col = svj.triggerstudy_columns(a, is_mc=False, all_triggers=True)
     assert 'HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v' in col.metadata['trigger_titles']
     # raise 0

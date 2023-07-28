@@ -133,7 +133,7 @@ def apply_jer_up(arrays):
         arrays.array[jets+'.fCoordinates.fPhi'] = phi
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
-    arrays.array['MET'] = arrays.array['METUp']
+    arrays.array['MET'] = arrays.array['METUp'][:,0]
     return arrays
 
 
@@ -158,7 +158,7 @@ def apply_jer_down(arrays):
         arrays.array[jets+'.fCoordinates.fPhi'] = phi
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
-    arrays.array['MET'] = arrays.array['METDown']
+    arrays.array['MET'] = arrays.array['METDown'][:,0]
     return arrays
 
 
@@ -184,7 +184,7 @@ def apply_jec_up(arrays):
         arrays.array[jets+'.fCoordinates.fPhi'] = phi
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
-    arrays.array['MET'] = arrays.array['METUp']
+    arrays.array['MET'] = arrays.array['METUp'][:,1]
     return arrays
 
 
@@ -210,5 +210,5 @@ def apply_jec_down(arrays):
         arrays.array[jets+'.fCoordinates.fPhi'] = phi
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
-    arrays.array['MET'] = arrays.array['METDown']
+    arrays.array['MET'] = arrays.array['METDown'][:,1]
     return arrays

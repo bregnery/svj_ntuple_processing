@@ -1,6 +1,7 @@
 import os, os.path as osp, logging, pprint, uuid, re
 from contextlib import contextmanager
 from collections import OrderedDict
+import copy
 
 import numpy as np
 import uproot
@@ -161,11 +162,11 @@ class Arrays:
         self.cutflow[cut_name] = len(self)
 
     def copy(self):
-        copy = Arrays(self.array)
-        copy.trigger_branch = self.trigger_branch
-        copy.cutflow = self.cutflow.copy()
-        copy.metadata = self.metadata.copy()
-        return copy
+        copy_ = Arrays(copy.copy(self.array))
+        copy_.trigger_branch = self.trigger_branch
+        copy_.cutflow = self.cutflow.copy()
+        copy_.metadata = self.metadata.copy()
+        return copy_
 
     @property
     def year(self):
@@ -262,6 +263,10 @@ BRANCHES_GENONLY = [
     'GenMuons.fCoordinates.fPt',
     'GenTaus.fCoordinates.fPt',
     'ScaleWeights',
+    'METDown', 'METUp', 'METPhiDown', 'METPhiUp',
+    ]
+
+BRANCHES_JERJEC = [
     'JetsJECdown_jerFactor',
     'JetsJECdown_origIndex',
     'JetsJECup_jerFactor',
@@ -298,11 +303,10 @@ BRANCHES_GENONLY = [
     'JetsAK15_jerFactor',
     'JetsAK15_jerFactorDown',
     'JetsAK15_jerFactorUp',
-    'METDown', 'METUp', 'METPhiDown', 'METPhiUp',
     ]
 
 
-def open_root(rootfile, load_gen=True, load_hlt=False):
+def open_root(rootfile, load_gen=True, load_hlt=False, load_jerjec=False):
     """
     Returns an Arrays object from a rootfile (unfiltered).
     """
@@ -310,6 +314,7 @@ def open_root(rootfile, load_gen=True, load_hlt=False):
     # Only available for simulation, not data
     if load_gen: branches.extend(BRANCHES_GENONLY)
     if load_hlt: branches.extend(BRANCHES_HLT)
+    if load_jerjec: branches.extend(BRANCHES_JERJEC)
 
     with local_copy(rootfile) as local:
         tree = uproot.open(local + ':TreeMaker2/PreSelection')

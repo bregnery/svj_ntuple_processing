@@ -105,7 +105,7 @@ def test_multiplying_ptetaphi_equals_pxpypz():
 
 def test_syst():
     rootfile = osp.join(TESTDIR, 'madpt300_mz350_mdark10_rinv0.3_ak15jecjer.root')
-    arrays = svj.open_root(rootfile, load_gen=True)
+    arrays = svj.open_root(rootfile, load_gen=True, load_jerjec=True)
 
     pt = arrays.array['JetsAK15.fCoordinates.fPt']
     eta = arrays.array['JetsAK15.fCoordinates.fEta']
@@ -215,7 +215,7 @@ def test_syst():
 
 def test_jer_up():
     rootfile = osp.join(TESTDIR, 'madpt300_mz350_mdark10_rinv0.3_ak15jecjer.root')
-    arrays = svj.open_root(rootfile, load_gen=True)
+    arrays = svj.open_root(rootfile, load_gen=True, load_jerjec=True)
     pt_corr, eta_corr, phi_corr, energy_corr = svj.calc_jer_variation(
         arrays.array['JetsAK15.fCoordinates.fPt'],
         arrays.array['JetsAK15.fCoordinates.fEta'],
@@ -232,17 +232,15 @@ def test_jer_up():
 
 def test_application():
     rootfile = osp.join(TESTDIR, 'madpt300_mz350_mdark10_rinv0.3_ak15jecjer.root')
-    arrays = svj.open_root(rootfile, load_gen=True)
+    arrays = svj.open_root(rootfile, load_gen=True, load_jerjec=True)
 
-    pt = arrays.array['Jets.fCoordinates.fPt']
-    eta = arrays.array['Jets.fCoordinates.fEta']
-    met = arrays.array['MET']
-
-    svj.apply_jer_up(arrays)
+    variation = svj.apply_jer_up(arrays)
 
     # Eta should at most be resorted, but no different values
     assert_akarray_almost_equal(
-        ak.sort(eta, axis=-1), ak.sort(arrays.array['Jets.fCoordinates.fEta'], axis=-1)
+        ak.sort(arrays.array['Jets.fCoordinates.fEta'], axis=-1),
+        ak.sort(variation.array['Jets.fCoordinates.fEta'], axis=-1)
         )
-    assert ak.any(pt != arrays.array['Jets.fCoordinates.fPt'])
-    assert ak.any(met != arrays.array['MET'])
+    assert ak.any(arrays.array['Jets.fCoordinates.fPt'] != variation.array['Jets.fCoordinates.fPt'])
+    assert ak.any(arrays.array['MET'] != variation.array['MET'])
+

@@ -116,6 +116,7 @@ def apply_jer_up(arrays):
     """
     Macro to apply the JER up variation on Arrays object.
     """
+    arrays = arrays.copy()
     for jets in ['Jets', 'JetsAK8', 'JetsAK15']:
         pt, eta, phi, energy = calc_jer_variation(
             arrays.array[jets+'.fCoordinates.fPt'],
@@ -133,12 +134,14 @@ def apply_jer_up(arrays):
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
     arrays.array['MET'] = arrays.array['METUp']
+    return arrays
 
 
 def apply_jer_down(arrays):
     """
     Macro to apply the JER down variation on Arrays object.
     """
+    arrays = arrays.copy()
     for jets in ['Jets', 'JetsAK8', 'JetsAK15']:
         pt, eta, phi, energy = calc_jer_variation(
             arrays.array[jets+'.fCoordinates.fPt'],
@@ -156,12 +159,14 @@ def apply_jer_down(arrays):
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
     arrays.array['MET'] = arrays.array['METDown']
+    return arrays
 
 
 def apply_jec_up(arrays):
     """
     Macro to apply the JEC up variation on Arrays object.
     """
+    arrays = arrays.copy()
     for jets in ['Jets', 'JetsAK8', 'JetsAK15']:
         pt, eta, phi, energy = calc_jec_variation(
             arrays.array[jets+'.fCoordinates.fPt'],
@@ -180,12 +185,14 @@ def apply_jec_up(arrays):
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
     arrays.array['MET'] = arrays.array['METUp']
+    return arrays
 
 
 def apply_jec_down(arrays):
     """
     Macro to apply the JEC down variation on Arrays object.
     """
+    arrays = arrays.copy()
     for jets in ['Jets', 'JetsAK8', 'JetsAK15']:
         pt, eta, phi, energy = calc_jec_variation(
             arrays.array[jets+'.fCoordinates.fPt'],
@@ -204,3 +211,4 @@ def apply_jec_down(arrays):
         arrays.array[jets+'.fCoordinates.fE'] = energy
 
     arrays.array['MET'] = arrays.array['METDown']
+    return arrays

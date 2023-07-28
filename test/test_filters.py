@@ -8,12 +8,6 @@ TESTDIR = osp.dirname(osp.abspath(__file__))
 if not TESTDIR.endswith('/'): TESTDIR += '/'
 
 
-# svj.BRANCHES_GENONLY.remove('ScaleWeights') # Branch not included in test files
-# svj.BRANCHES_GENONLY.remove('GenElectrons.fCoordinates.fPt')
-# svj.BRANCHES_GENONLY.remove('GenMuons.fCoordinates.fPt')
-# svj.BRANCHES_GENONLY.remove('GenTaus.fCoordinates.fPt')
-
-
 def test_preselection_local():
     a = svj.open_root(TESTDIR + 'madpt300_mz350_mdark10_rinv0.3.root')
     len_a_prefilter = len(a)

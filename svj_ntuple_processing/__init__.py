@@ -215,8 +215,9 @@ def local_copy(remote):
 
 BRANCHES = [
     'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
-    'Jets.fCoordinates.fPhi',
-    'JetsAK8.fCoordinates.fPt', 'JetsAK8.fCoordinates.fEta', 'JetsAK8.fCoordinates.fPhi',
+    'Jets.fCoordinates.fPhi', 'Jets.fCoordinates.fE',
+    'JetsAK8.fCoordinates.fPt', 'JetsAK8.fCoordinates.fEta',
+    'JetsAK8.fCoordinates.fPhi', 'JetsAK8.fCoordinates.fE',
     'JetsAK15.fCoordinates.fPt', 'JetsAK15.fCoordinates.fEta',
     'JetsAK15.fCoordinates.fPhi', 'JetsAK15.fCoordinates.fE',
     'JetsAK15_ecfC2b1', 'JetsAK15_ecfC2b2',
@@ -240,6 +241,10 @@ BRANCHES = [
     'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta',
     'Muons.fCoordinates.fPhi', 'Muons.fCoordinates.fE',
     'Muons_iso', 'Muons_mediumID',
+    ]
+
+BRANCHES_HLT = [
+    # HLT
     'HLTMuonObjects.fCoordinates.fPt', 'HLTMuonObjects.fCoordinates.fEta',
     'HLTMuonObjects.fCoordinates.fPhi', 'HLTMuonObjects.fCoordinates.fE',
     ]
@@ -256,17 +261,55 @@ BRANCHES_GENONLY = [
     'GenElectrons.fCoordinates.fPt',
     'GenMuons.fCoordinates.fPt',
     'GenTaus.fCoordinates.fPt',
-    'ScaleWeights'
+    'ScaleWeights',
+    'JetsJECdown_jerFactor',
+    'JetsJECdown_origIndex',
+    'JetsJECup_jerFactor',
+    'JetsJECup_origIndex',
+    'JetsJERdown_origIndex',
+    'JetsJERup_origIndex',
+    'Jets_origIndex',
+    'Jets_jecFactor',
+    'Jets_jecUnc',
+    'Jets_jerFactor',
+    'Jets_jerFactorDown',
+    'Jets_jerFactorUp',
+    'JetsAK8JECdown_jerFactor',
+    'JetsAK8JECdown_origIndex',
+    'JetsAK8JECup_jerFactor',
+    'JetsAK8JECup_origIndex',
+    'JetsAK8JERdown_origIndex',
+    'JetsAK8JERup_origIndex',
+    'JetsAK8_origIndex',
+    'JetsAK8_jecFactor',
+    'JetsAK8_jecUnc',
+    'JetsAK8_jerFactor',
+    'JetsAK8_jerFactorDown',
+    'JetsAK8_jerFactorUp',
+    'JetsAK15JECdown_jerFactor',
+    'JetsAK15JECdown_origIndex',
+    'JetsAK15JECup_jerFactor',
+    'JetsAK15JECup_origIndex',
+    'JetsAK15JERdown_origIndex',
+    'JetsAK15JERup_origIndex',
+    'JetsAK15_origIndex',
+    'JetsAK15_jecFactor',
+    'JetsAK15_jecUnc',
+    'JetsAK15_jerFactor',
+    'JetsAK15_jerFactorDown',
+    'JetsAK15_jerFactorUp',
+    'METDown', 'METUp', 'METPhiDown', 'METPhiUp',
     ]
 
 
-def open_root(rootfile, load_gen=True):
+def open_root(rootfile, load_gen=True, load_hlt=False):
     """
     Returns an Arrays object from a rootfile (unfiltered).
     """
     branches = BRANCHES[:]
     # Only available for simulation, not data
     if load_gen: branches.extend(BRANCHES_GENONLY)
+    if load_hlt: branches.extend(BRANCHES_HLT)
 
     with local_copy(rootfile) as local:
         tree = uproot.open(local + ':TreeMaker2/PreSelection')
@@ -1174,3 +1217,6 @@ def metadata_from_filename(path):
         metadata['genmet'] = int(match.group(1))
         logger.debug('Setting genmet=%s', metadata['genmet'])
     return metadata
+
+
+from .systematics import *

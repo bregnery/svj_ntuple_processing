@@ -234,7 +234,7 @@ def test_application():
     rootfile = osp.join(TESTDIR, 'madpt300_mz350_mdark10_rinv0.3_ak15jecjer.root')
     arrays = svj.open_root(rootfile, load_gen=True, load_jerjec=True)
 
-    variation = svj.apply_jer_up(arrays)
+    variation = svj.apply_jec_down(arrays)
 
     # Eta should at most be resorted, but no different values
     assert_akarray_almost_equal(

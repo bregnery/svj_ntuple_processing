@@ -203,7 +203,7 @@ def apply_jec_down(arrays):
             arrays.array[jets+'.fCoordinates.fPhi'],
             arrays.array[jets+'.fCoordinates.fE'],
             jer_factor = arrays.array[jets+'_jerFactor'],
-            jec_unc = arrays.array[jets+'_jecUnc'],
+            jec_unc = -arrays.array[jets+'_jecUnc'],
             orig_idx = arrays.array[jets+'_origIndex'],
             variation_orig_idx = arrays.array[jets+'JECdown_origIndex'],
             variation_jer_factor = arrays.array[jets+'JECdown_jerFactor'],

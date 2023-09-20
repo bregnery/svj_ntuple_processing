@@ -225,6 +225,7 @@ def open_root(rootfile, load_gen=True):
         'JetsAK15_axismajor', 'JetsAK15_axisminor',
         'JetsAK15_chargedHadronEnergyFraction', 'JetsAK15_electronEnergyFraction', 'JetsAK15_muonEnergyFraction',
         'JetsAK15_neutralHadronEnergyFraction', 'JetsAK15_photonEnergyFraction',
+        'JetsAK15_ID',
         'HT',
         'MET', 'METPhi',
         'TriggerPass',
@@ -482,6 +483,10 @@ def filter_preselection(array):
     METDphi = calc_dphi(a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), a['METPhi'].to_numpy())
     a = a[abs(METDphi)<1.5]
     cutflow['abs(metdphi)<1.5'] = len(a)
+
+    #JetsAK15_JetID criteria for tight selection cuts: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
+    a = a[a['JetsAK15_ID']>0]
+    cutflow['ak15jets_id'] = len(a)
 
     cutflow['preselection'] = len(a)
 

@@ -8,7 +8,7 @@ TESTDIR = osp.dirname(osp.abspath(__file__))
 if not TESTDIR.endswith('/'): TESTDIR += '/'
 
 
-def test_preselection():
+def test_preselection_local():
     a = svj.open_root(TESTDIR + 'madpt300_mz350_mdark10_rinv0.3.root')
     len_a_prefilter = len(a)
     a = svj.filter_preselection(a)
@@ -168,8 +168,22 @@ def test_load_numpy():
 def test_trigger_column():
     a = svj.open_root(TESTDIR + 'madpt300_mz350_mdark10_rinv0.3.root')
     a = svj.filter_at_least_one_ak8jet(a)
-    col = svj.triggerstudy_columns(a)
+    col = svj.triggerstudy_columns(a, single_muon_trigs=True)
     assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt'].shape
     assert col.arrays['mt_ak15_subl'].shape == col.arrays['pt_ak15_subl'].shape
     assert col.arrays['pt_ak15'].shape == col.arrays['pt_ak15_subl'].shape
     assert np.any(np.isfinite(col.arrays['mt_ak15_subl']))
+    assert 'HLT_Mu50_v' in col.metadata['trigger_titles']
+
+
+def test_singlemuon_cr():
+    f = TESTDIR + 'data2018_singlemuon.root'
+    # f = 'root://cmseos.fnal.gov//store/user/lpcsusyhad/SusyRA2Analysis2015/Run2ProductionV20/Run2018A-UL2018-v3/SingleMuon/954_RA2AnalysisTree.root'
+    a = svj.open_root(f, load_gen=False, load_hlt=True)
+    a = svj.filter_preselection(a, single_muon_cr=True)
+    assert 'singlemuon' in a.cutflow
+    assert 'triggers' not in a.cutflow
+    assert 'ak8jet.pt>500' not in a.cutflow
+    col = svj.triggerstudy_columns(a, is_mc=False, all_triggers=True)
+    assert 'HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v' in col.metadata['trigger_titles']
+    # raise 0

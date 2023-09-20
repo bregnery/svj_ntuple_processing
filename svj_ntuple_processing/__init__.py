@@ -1,11 +1,11 @@
 import os, os.path as osp, logging, pprint, uuid, re
 from contextlib import contextmanager
 from collections import OrderedDict
+import copy
 
 import numpy as np
 import uproot
 import awkward as ak
-from scipy.ndimage import gaussian_filter
 
 INCLUDE_DIR = osp.join(osp.abspath(osp.dirname(__file__)), "include")
 def version():
@@ -65,6 +65,9 @@ triggers_2018 = [
     'HLT_PFHT800_PFMET85_PFMHT85_IDTight_v',
     ]
 
+triggers_2017 = triggers_2018[:]
+triggers_2017.append('HLT_AK8PFJet360_TrimMass30_v')
+
 triggers_2016 = [
     'HLT_AK8PFHT700_TrimR0p1PT0p03Mass50_v',
     'HLT_AK8PFJet360_TrimMass30_v',
@@ -72,10 +75,14 @@ triggers_2016 = [
     'HLT_PFHT900_v',
     'HLT_PFJet450_v',
     'HLT_PFJet500_v',
+    'HLT_PFHT800_v',
+    # MET:
+    'HLT_PFHT300_PFMET100_v',
+    'HLT_PFHT300_PFMET110_v',
     ]
 
 # Checked: 2017 identical to 2018
-triggers_per_year = {2016: triggers_2016, 2017: triggers_2018, 2018: triggers_2018}
+triggers_per_year = {2016: triggers_2016, 2017: triggers_2017, 2018: triggers_2018}
 
 
 #  ECAL DEAD CELL LOCATIONS
@@ -155,11 +162,11 @@ class Arrays:
         self.cutflow[cut_name] = len(self)
 
     def copy(self):
-        copy = Arrays(self.array)
-        copy.trigger_branch = self.trigger_branch
-        copy.cutflow = self.cutflow.copy()
-        copy.metadata = self.metadata.copy()
-        return copy
+        copy_ = Arrays(copy.copy(self.array))
+        copy_.trigger_branch = self.trigger_branch
+        copy_.cutflow = self.cutflow.copy()
+        copy_.metadata = self.metadata.copy()
+        return copy_
 
     @property
     def year(self):
@@ -207,10 +214,103 @@ def local_copy(remote):
                 pass
 
 
-def open_root(rootfile, load_gen=True):
+BRANCHES = [
+    'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
+    'Jets.fCoordinates.fPhi', 'Jets.fCoordinates.fE',
+    'JetsAK8.fCoordinates.fPt', 'JetsAK8.fCoordinates.fEta',
+    'JetsAK8.fCoordinates.fPhi', 'JetsAK8.fCoordinates.fE',
+    'JetsAK15.fCoordinates.fPt', 'JetsAK15.fCoordinates.fEta',
+    'JetsAK15.fCoordinates.fPhi', 'JetsAK15.fCoordinates.fE',
+    'JetsAK15_ecfC2b1', 'JetsAK15_ecfC2b2',
+    'JetsAK15_ecfD2b1', 'JetsAK15_ecfD2b2',
+    'JetsAK15_ecfM2b1', 'JetsAK15_ecfM2b2',
+    'JetsAK15_ecfN2b1', 'JetsAK15_ecfN2b2',
+    'JetsAK15_girth', 'JetsAK15_ptD',
+    'JetsAK15_axismajor', 'JetsAK15_axisminor',
+    'JetsAK15_chargedHadronEnergyFraction', 'JetsAK15_electronEnergyFraction', 'JetsAK15_muonEnergyFraction',
+    'JetsAK15_neutralHadronEnergyFraction', 'JetsAK15_photonEnergyFraction',
+    'HT',
+    'MET', 'METPhi',
+    'TriggerPass',
+    'NMuons', 'NElectrons',
+    'HBHENoiseFilter', 'HBHEIsoNoiseFilter', 'eeBadScFilter',
+    'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
+    'BadPFMuonFilter', 'BadChargedCandidateFilter', 'globalSuperTightHalo2016Filter',
+    # highMET events
+    'CaloMET', 'PFCaloMETRatio',
+    # Muon stuff
+    'Muons.fCoordinates.fPt', 'Muons.fCoordinates.fEta',
+    'Muons.fCoordinates.fPhi', 'Muons.fCoordinates.fE',
+    'Muons_iso', 'Muons_mediumID',
+    ]
+
+BRANCHES_HLT = [
+    # HLT
+    'HLTMuonObjects.fCoordinates.fPt', 'HLTMuonObjects.fCoordinates.fEta',
+    'HLTMuonObjects.fCoordinates.fPhi', 'HLTMuonObjects.fCoordinates.fE',
+    ]
+
+BRANCHES_GENONLY = [
+    'Weight', 'puWeight', 
+    'madHT', 'GenMET',
+    'GenParticles_PdgId',
+    'GenParticles_Status',
+    'GenParticles.fCoordinates.fPt',
+    'GenParticles.fCoordinates.fEta',
+    'GenParticles.fCoordinates.fPhi',
+    'GenParticles.fCoordinates.fE',
+    'GenElectrons.fCoordinates.fPt',
+    'GenMuons.fCoordinates.fPt',
+    'GenTaus.fCoordinates.fPt',
+    'ScaleWeights',
+    'METDown', 'METUp', 'METPhiDown', 'METPhiUp',
+    ]
+
+BRANCHES_JERJEC = [
+    'JetsJECdown_jerFactor',
+    'JetsJECdown_origIndex',
+    'JetsJECup_jerFactor',
+    'JetsJECup_origIndex',
+    'JetsJERdown_origIndex',
+    'JetsJERup_origIndex',
+    'Jets_origIndex',
+    'Jets_jecFactor',
+    'Jets_jecUnc',
+    'Jets_jerFactor',
+    'Jets_jerFactorDown',
+    'Jets_jerFactorUp',
+    'JetsAK8JECdown_jerFactor',
+    'JetsAK8JECdown_origIndex',
+    'JetsAK8JECup_jerFactor',
+    'JetsAK8JECup_origIndex',
+    'JetsAK8JERdown_origIndex',
+    'JetsAK8JERup_origIndex',
+    'JetsAK8_origIndex',
+    'JetsAK8_jecFactor',
+    'JetsAK8_jecUnc',
+    'JetsAK8_jerFactor',
+    'JetsAK8_jerFactorDown',
+    'JetsAK8_jerFactorUp',
+    'JetsAK15JECdown_jerFactor',
+    'JetsAK15JECdown_origIndex',
+    'JetsAK15JECup_jerFactor',
+    'JetsAK15JECup_origIndex',
+    'JetsAK15JERdown_origIndex',
+    'JetsAK15JERup_origIndex',
+    'JetsAK15_origIndex',
+    'JetsAK15_jecFactor',
+    'JetsAK15_jecUnc',
+    'JetsAK15_jerFactor',
+    'JetsAK15_jerFactorDown',
+    'JetsAK15_jerFactorUp',
+    ]
+
+
+def open_root(rootfile, load_gen=True, load_hlt=False, load_jerjec=False):
     """
     Returns an Arrays object from a rootfile (unfiltered).
     """
+<<<<<<< HEAD
     branches = [
         'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
         'Jets.fCoordinates.fPhi',
@@ -254,6 +354,13 @@ def open_root(rootfile, load_gen=True):
         'GenParticles.fCoordinates.fPhi',
         'GenParticles.fCoordinates.fE',
         ])
+=======
+    branches = BRANCHES[:]
+    # Only available for simulation, not data
+    if load_gen: branches.extend(BRANCHES_GENONLY)
+    if load_hlt: branches.extend(BRANCHES_HLT)
+    if load_jerjec: branches.extend(BRANCHES_JERJEC)
+>>>>>>> b01843b2aecc112b64571f78b8ddfeccc4534b8b
 
     with local_copy(rootfile) as local:
         tree = uproot.open(local + ':TreeMaker2/PreSelection')
@@ -403,22 +510,30 @@ def cr_filter_preselection(array):
     return copy
 
 
-def filter_preselection(array):
+def filter_preselection(array, single_muon_cr=False):
+    """Apply the preselection on the array.
+
+    Args:
+        single_muon_cr (bool): If true, *selects* a muon instead of applying the lepton
+            veto. Disables the AK8Jet.pT cut and the triggers, since this mode is used
+            to study the trigger efficiencies.
+    """
     copy = array.copy()
     a = copy.array
     cutflow = copy.cutflow
     
-    # AK8Jet.pT>500
-    a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
-    a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
-    cutflow['ak8jet.pt>500'] = len(a)
+    if not single_muon_cr:
+        # AK8Jet.pT>500
+        a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
+        a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
+        cutflow['ak8jet.pt>500'] = len(a)
 
-    # Triggers
-    trigger_indices = np.array([copy.trigger_branch.index(t) for t in copy.triggers])
-    if len(a):
-        trigger_decisions = a['TriggerPass'].to_numpy()[:,trigger_indices]
-        a = a[(trigger_decisions == 1).any(axis=-1)]
-    cutflow['triggers'] = len(a)
+        # Triggers
+        trigger_indices = np.array([copy.trigger_branch.index(t) for t in copy.triggers])
+        if len(a):
+            trigger_decisions = a['TriggerPass'].to_numpy()[:,trigger_indices]
+            a = a[(trigger_decisions == 1).any(axis=-1)]
+        cutflow['triggers'] = len(a)
 
     # At least 2 AK15 jets
     a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
@@ -450,9 +565,34 @@ def filter_preselection(array):
     a = a[~ak.any(a['Muons.fCoordinates.fPt'] > 1500., axis=-1)]
     cutflow['muonpt<1500'] = len(a)
 
-    # lepton vetoes
-    a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
-    cutflow['nleptons=0'] = len(a)
+    if single_muon_cr:
+        # apply preselection - muon veto + muon selection
+        # (used medium ID + pt > 50 GeV + iso < 0.2 in EXO-19-020,
+        #  see AN-19-061 section 4.2)
+        # require the selected muon to match with the HLT muon object
+        # (which should be saved in the SingleMuon ntuples) by ΔR < 0.2
+        a = a[a['NMuons']>=1]
+        if len(a):
+            a = a[
+                (a['Muons_mediumID'][:,0])
+                & (a['Muons.fCoordinates.fPt'][:,0]>50.)
+                & (a['Muons_iso'][:,0]<.2) 
+                ]
+        if len(a):
+            a = a[ak.count(a['HLTMuonObjects.fCoordinates.fPt'], axis=-1) >= 1]
+            a = a[calc_dr(
+                a['Muons.fCoordinates.fPt'][:,0].to_numpy(),
+                a['Muons.fCoordinates.fEta'][:,0].to_numpy(),
+                a['HLTMuonObjects.fCoordinates.fPt'][:,0].to_numpy(),
+                a['HLTMuonObjects.fCoordinates.fEta'][:,0].to_numpy(),
+                ) < .2]
+        cutflow['singlemuon'] = len(a)
+        a = a[a['NElectrons']==0]
+        cutflow['nelectrons=0'] = len(a)
+    else:
+        # lepton vetoes
+        a = a[(a['NMuons']==0) & (a['NElectrons']==0)]
+        cutflow['nleptons=0'] = len(a)
 
     # MET filters
     for b in [
@@ -494,11 +634,13 @@ def filter_preselection(array):
     logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))
     return copy
 
+
 def rhoddt_windowcuts(mt, pt, rho):
     cuts = (mt>200) & (mt<1000) & (pt>110) & (pt<1500) & (rho>-4) & (rho<0)
     return cuts
 
 def girthmap(mt, pt,rho,girth,weight):
+    from scipy.ndimage import gaussian_filter
     cuts = rhoddt_windowcuts(mt, pt, rho)
     C, RHO_edges, PT_edges = np.histogram2d(rho[cuts], pt[cuts], bins=49,weights=weight[cuts])
     w, h = 50, 50
@@ -527,11 +669,11 @@ def girthddt(mt, pt,rho,girth,weight):
 
     #ptbin         = np.clip(1 + ptbin_float.astype(int),   0, nbins)
     #rhobin        = np.clip(1 + rhobin_float.astype(int),  0, nbins)
-    print('*'*10, ptbin_float, '*'*10, rhobin_float)
+    # print('*'*10, ptbin_float, '*'*10, rhobin_float)
     ptbin  = np.clip(1 + np.round(ptbin_float).astype(int), 0, nbins)
     rhobin = np.clip(1 + np.round(rhobin_float).astype(int), 0, nbins)
 
-    print(ptbin, rhobin, len(ptbin), len(rhobin), len(girth), max(rhobin), max(ptbin), np.shape(girth_map_smooth))
+    # print(ptbin, rhobin, len(ptbin), len(rhobin), len(girth), max(rhobin), max(ptbin), np.shape(girth_map_smooth))
     girthDDT = np.array([girth[i] - girth_map_smooth[rhobin[i]-1][ptbin[i]-1] for i in range(len(girth))])
     return girthDDT
 
@@ -894,7 +1036,7 @@ def concat_columns(columns):
     return cols
 
 
-def bdt_feature_columns(array, load_mc=True):
+def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
     """
     Takes an Array object, calculates needed columns for the bdt training.
     """
@@ -960,10 +1102,13 @@ def bdt_feature_columns(array, load_mc=True):
     a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
     a['ak8_lead_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,0].to_numpy()
     a['ak8_lead_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,0].to_numpy()
-    a['ak8_subl_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,1].to_numpy()
-    a['ak8_subl_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,1].to_numpy()
-    a['ak8_subl_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,1].to_numpy()
+    # a['ak8_subl_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,1].to_numpy()
+    # a['ak8_subl_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,1].to_numpy()
+    # a['ak8_subl_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,1].to_numpy()
     a['puweight'] = arr['puWeight'].to_numpy()
+
+    if save_scale_weights:
+        a['scaleweights'] = arr['ScaleWeights'].to_numpy()
 
     # QCD high MET events 
     #a['CaloMET']        = arr['CaloMET'].to_numpy()
@@ -997,14 +1142,32 @@ def bdt_feature_columns(array, load_mc=True):
 cr_feature_columns = bdt_feature_columns
 
 
-def triggerstudy_columns(array):
+def triggerstudy_columns(array, is_mc=True, single_muon_trigs=False, all_triggers=False):
     a = array.array # Just to avoid typing array.array everywhere
 
-    # Most triggers are not interesting for us and they take up space
-    # Select all the triggers we would like to keep for further study
     trigger_names = array.trigger_branch
-    trigger_set = set(triggers_2016 + triggers_2018)
-    keep_trigger_mask = np.array([(t in trigger_set) for t in trigger_names])
+
+    if all_triggers:
+        trigger_set = set(trigger_names)
+        keep_trigger_mask = np.ones(len(trigger_names), dtype=bool)
+    else:
+        # Most triggers are not interesting for us and they take up space
+        # Select all the triggers we would like to keep for further study
+        trigger_set = set(triggers_2016 + triggers_2017 + triggers_2018)
+        if single_muon_trigs:
+            trigger_set.update({
+                'HLT_Mu50_IsoVVVL_PFHT400_v',
+                'HLT_Mu50_IsoVVVL_PFHT450_v',
+                'HLT_Mu50_v',
+                'HLT_TkMu50_v',
+                })
+        # Save some more to be sure - not sure if needed
+        trigger_set.update({
+            'HLT_PFMETTypeOne120_PFMHT120_IDTight_v',  # 2017 MET trigger?
+            'HLT_PFMET120_PFMHT120_IDTight_v',         # 2018 MET trigger?
+            'HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v', # 2018 MET trigger?
+            })
+        keep_trigger_mask = np.array([(t in trigger_set) for t in trigger_names])
 
     cols = Columns()
     cols.cutflow = array.cutflow
@@ -1017,13 +1180,15 @@ def triggerstudy_columns(array):
     # Event-level variables
     cols.arrays['ht'] = a['HT'].to_numpy()
     cols.arrays['met'] = a['MET'].to_numpy()
-    cols.arrays['weight'] = a['Weight'].to_numpy()
+    if is_mc: cols.arrays['weight'] = a['Weight'].to_numpy()
 
     # AK8 jets
     pt_ak8 = a['JetsAK8.fCoordinates.fPt']
     njets = ak.count(pt_ak8, axis=-1).to_numpy()
     cols.arrays['njets'] = njets
-    cols.arrays['pt'] = pt_ak8[:,0].to_numpy()
+
+    cols.arrays['pt'] = np.ones_like(njets) * np.nan
+    if np.any(njets>=1): cols.arrays['pt'][njets>=1] = pt_ak8[njets>=1,0].to_numpy()
     cols.arrays['pt_subl'] = np.ones_like(cols.arrays['pt']) * np.nan
     if np.any(njets>=2): cols.arrays['pt_subl'][njets>=2] = pt_ak8[njets>=2,1].to_numpy()
 
@@ -1107,3 +1272,6 @@ def metadata_from_filename(path):
         metadata['genmet'] = int(match.group(1))
         logger.debug('Setting genmet=%s', metadata['genmet'])
     return metadata
+
+
+from .systematics import *

@@ -310,7 +310,6 @@ def open_root(rootfile, load_gen=True, load_hlt=False, load_jerjec=False):
     """
     Returns an Arrays object from a rootfile (unfiltered).
     """
-<<<<<<< HEAD
     branches = [
         'Jets.fCoordinates.fPt', 'Jets.fCoordinates.fEta',
         'Jets.fCoordinates.fPhi',
@@ -354,13 +353,11 @@ def open_root(rootfile, load_gen=True, load_hlt=False, load_jerjec=False):
         'GenParticles.fCoordinates.fPhi',
         'GenParticles.fCoordinates.fE',
         ])
-=======
     branches = BRANCHES[:]
     # Only available for simulation, not data
     if load_gen: branches.extend(BRANCHES_GENONLY)
     if load_hlt: branches.extend(BRANCHES_HLT)
     if load_jerjec: branches.extend(BRANCHES_JERJEC)
->>>>>>> b01843b2aecc112b64571f78b8ddfeccc4534b8b
 
     with local_copy(rootfile) as local:
         tree = uproot.open(local + ':TreeMaker2/PreSelection')

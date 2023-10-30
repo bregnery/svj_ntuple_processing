@@ -622,7 +622,9 @@ def filter_preselection(array, single_muon_cr=False):
     cutflow['abs(metdphi)<1.5'] = len(a)
 
     #JetsAK15_JetID criteria for tight selection cuts: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
-    a = a[a['JetsAK15_ID']>0]
+    #a = a[a['JetsAK15_ID']>0]
+    #jets_id event level? -->apply it to sub-leading jets?
+    a = a[a['JetsAK15)ID'][:,1]>0]
     cutflow['ak15jets_id'] = len(a)
 
     cutflow['preselection'] = len(a)

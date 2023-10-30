@@ -532,6 +532,19 @@ def filter_preselection(array, single_muon_cr=False):
             a = a[(trigger_decisions == 1).any(axis=-1)]
         cutflow['triggers'] = len(a)
 
+    # 
+    #JetsAK15_JetID criteria for tight selection cuts: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
+    #a = a[a['JetsAK15_ID']>0]
+    #jets_id event level? -->apply it only to sub-leading jet?
+    #a = a[a['jetsak15_id']>0]
+    #a = a[a['JetsAK15_ID'][:,1]>0]
+    #cutflow['jetsak15_id'] = len(a)
+
+
+    a = a[a['JetsAK15_ID'][:,1]>0.]
+    cutflow['jetsak15_id'] = len(a)
+
+
     # At least 2 AK15 jets
     a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
     cutflow['n_ak15jets>=2'] = len(a)
@@ -624,9 +637,9 @@ def filter_preselection(array, single_muon_cr=False):
     #JetsAK15_JetID criteria for tight selection cuts: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
     #a = a[a['JetsAK15_ID']>0]
     #jets_id event level? -->apply it to sub-leading jets?
-    a = a[a['ak15jets_id']>0]
+    #a = a[a['ak15jets_id']>0]
     #a = a[a['JetsAK15_ID'][:,1]>0]
-    cutflow['ak15jets_id'] = len(a)
+    #cutflow['ak15jets_id'] = len(a)
 
     cutflow['preselection'] = len(a)
 
@@ -1106,7 +1119,7 @@ def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
     # a['ak8_subl_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,1].to_numpy()
     # a['ak8_subl_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,1].to_numpy()
     a['puweight'] = arr['puWeight'].to_numpy()
-    a['ak15jets_id'] = arr['JetsAK15_ID'][:,1].to_numpy()
+    a['jetsak15_id'] = arr['JetsAK15_ID'][:,1].to_numpy()
 
     if save_scale_weights:
         a['scaleweights'] = arr['ScaleWeights'].to_numpy()

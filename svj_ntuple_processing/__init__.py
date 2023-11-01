@@ -663,6 +663,12 @@ def filter_preselection_ordered(array, single_muon_cr=False):
     # subleading eta < 2.4 eta
     a = a[np.abs(a['JetsAK15.fCoordinates.fEta'][:,1])<2.4]
     cutflow['subl_eta<2.4'] = len(a)
+
+    # AK8 jetpt>500
+    a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
+    a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
+    cutflow['ak8jet.pt>500'] = len(a)
+
     # positive ECF values
     for ecf in [
         'JetsAK15_ecfC2b1', 'JetsAK15_ecfD2b1',
@@ -744,6 +750,21 @@ def filter_preselection_ordered(array, single_muon_cr=False):
     a = a[abs(METDphi)<1.5]
     cutflow['abs(metdphi)<1.5'] = len(a)
 
+    # MT window 180 -- 650 GeV
+    pt = a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
+    eta = a['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
+    phi = a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
+    e = a['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
+    
+    met = a['MET'].to_numpy()
+    metphi = a['METPhi'].to_numpy()
+    mt = calculate_mt(
+     pt, eta, phi, e,
+     met, metphi
+     )
+    a = a[(mt>180) & (mt<650)]
+    cutflow['180<mt<650'] = len(a)
+
 
     cutflow['preselection'] = len(a)
 
@@ -767,7 +788,32 @@ def selection_plots(array):
     a = a[np.abs(a['JetsAK15.fCoordinates.fEta'][:,1])<2.4]
     cutflow['subl_eta<2.4'] = len(a)
 
-    cutflow['preselection'] = len(a)
+    # Filter out jets that are too close to dead cells
+    ak4jet_eta = a['Jets.fCoordinates.fEta'][:,1].to_numpy()
+    ak4jet_phi = a['Jets.fCoordinates.fPhi'][:,1].to_numpy()
+    dead_cell_mask = veto_phi_spike(
+        dataqcd_eta_ecaldead[array.year], dataqcd_phi_ecaldead[array.year],
+        ak4jet_eta, ak4jet_phi,
+        rad = 0.01
+        )
+
+    a = a[dead_cell_mask]
+    cutflow['ecaldeadcells'] = len(a)
+
+    # MET filters
+    for b in [
+        'HBHENoiseFilter',
+        'HBHEIsoNoiseFilter',
+        'eeBadScFilter',
+        'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
+        'BadPFMuonFilter',
+        'BadChargedCandidateFilter',
+        'globalSuperTightHalo2016Filter',
+        ]:
+        a = a[a[b]!=0] # Pass events if not 0, is that correct?
+    cutflow['metfilter'] = len(a)
+
+    cutflow['selection_cuts'] = len(a)
 
     copy.array = a
     logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))

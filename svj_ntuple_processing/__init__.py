@@ -766,7 +766,7 @@ def filter_preselection_ordered(array, single_muon_cr=False):
     cutflow['180<mt<650'] = len(a)
 
 
-    cutflow['preselection'] = len(a)
+    cutflow['ordered_preselection'] = len(a)
 
     copy.array = a
     logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))

@@ -654,12 +654,18 @@ def filter_preselection_ordered(array, single_muon_cr=False):
         ordered selection cuts to make cutflowtable
           should be run after the filter_stitch(array) function
     """
+    copy = array.copy()
+    a = copy.array
+    cutflow = copy.cutflow
+
     # At least 2 AK15 jets
     a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
     cutflow['n_ak15jets>=2'] = len(a)
+
     # jetid for AK15 jets
     a = a[a['JetsAK15_ID'][:,1]>0]
     cutflow['ak15jets_id'] = len(a)
+
     # subleading eta < 2.4 eta
     a = a[np.abs(a['JetsAK15.fCoordinates.fEta'][:,1])<2.4]
     cutflow['subl_eta<2.4'] = len(a)

@@ -533,6 +533,10 @@ def filter_preselection(array, single_muon_cr=False):
             a = a[(trigger_decisions == 1).any(axis=-1)]
         cutflow['triggers'] = len(a)
 
+    # At least 2 AK15 jets
+    a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak15jets>=2'] = len(a)
+
     # 
     #JetsAK15_JetID criteria for tight selection cuts: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
     #a = a[a['JetsAK15_ID']>0]
@@ -540,15 +544,8 @@ def filter_preselection(array, single_muon_cr=False):
     #a = a[a['jetsak15_id']>0]
     #a = a[a['JetsAK15_ID'][:,1]>0]
     #cutflow['jetsak15_id'] = len(a)
-
-
     a = a[a['JetsAK15_ID'][:,1]>0.]
     cutflow['jetsak15_id'] = len(a)
-
-
-    # At least 2 AK15 jets
-    a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
-    cutflow['n_ak15jets>=2'] = len(a)
 
     # At least 2 AK4 jets --> deadcells study
     a = a[ak.count(a['Jets.fCoordinates.fPt'], axis=-1) >= 2]

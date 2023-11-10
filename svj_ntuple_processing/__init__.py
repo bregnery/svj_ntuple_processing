@@ -589,10 +589,10 @@ def filter_preselection(array, single_muon_cr=False):
         if len(a):
             a = a[ak.count(a['HLTMuonObjects.fCoordinates.fPt'], axis=-1) >= 1]
             a = a[calc_dr(
-                a['Muons.fCoordinates.fPt'][:,0].to_numpy(),
                 a['Muons.fCoordinates.fEta'][:,0].to_numpy(),
-                a['HLTMuonObjects.fCoordinates.fPt'][:,0].to_numpy(),
+                a['Muons.fCoordinates.fPhi'][:,0].to_numpy(),
                 a['HLTMuonObjects.fCoordinates.fEta'][:,0].to_numpy(),
+                a['HLTMuonObjects.fCoordinates.fPhi'][:,0].to_numpy(),
                 ) < .2]
         cutflow['singlemuon'] = len(a)
         a = a[a['NElectrons']==0]

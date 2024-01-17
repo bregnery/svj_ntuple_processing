@@ -826,6 +826,88 @@ def selection_plots(array):
     return copy
     
 
+def selection_deadcells(array):
+    # to make the n-1 plots
+    copy = array.copy()
+    a = copy.array
+    cutflow = copy.cutflow
+
+    # At least 2 AK15 jets
+    a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak15jets>=2'] = len(a)
+    # jetid for AK15 jets
+    a = a[a['JetsAK15_ID'][:,1]>0]
+    cutflow['ak15jets_id'] = len(a)
+    # subleading eta < 2.4 eta
+    a = a[np.abs(a['JetsAK15.fCoordinates.fEta'][:,1])<2.4]
+    cutflow['subl_eta<2.4'] = len(a)
+
+    # AK8 jetpt>500
+    a = a[ak.count(a['JetsAK8.fCoordinates.fPt'], axis=-1)>=1] # At least one jet
+    a = a[a['JetsAK8.fCoordinates.fPt'][:,0]>500.] # leading>500
+    cutflow['ak8jet.pt>500'] = len(a)
+
+    # positive ECF values
+    for ecf in [
+        'JetsAK15_ecfC2b1', 'JetsAK15_ecfD2b1',
+        'JetsAK15_ecfM2b1', 'JetsAK15_ecfN2b2',
+        ]:
+        a = a[a[ecf][:,1]>0.]
+    cutflow['subl_ecf>0'] = len(a)
+
+    # rtx>1.1
+    rtx = np.sqrt(1. + a['MET'].to_numpy() / a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy())
+    a = a[rtx>1.1]
+    cutflow['rtx>1.1'] = len(a)
+
+    # muon pt < 1500 filter to avoid highMET events
+    a = a[~ak.any(a['Muons.fCoordinates.fPt'] > 1500., axis=-1)]
+    cutflow['muonpt<1500'] = len(a)
+
+    # MET filters
+    for b in [
+        'HBHENoiseFilter',
+        'HBHEIsoNoiseFilter',
+        'eeBadScFilter',
+        'ecalBadCalibFilter' if UL else 'ecalBadCalibReducedFilter',
+        'BadPFMuonFilter',
+        'BadChargedCandidateFilter',
+        'globalSuperTightHalo2016Filter',
+        ]:
+        a = a[a[b]!=0] # Pass events if not 0, is that correct?
+    cutflow['metfilter'] = len(a)
+
+    # At least 2 AK4 jets --> deadcells study
+    a = a[ak.count(a['Jets.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak4jets>=2'] = len(a)
+
+    # abs(metdphi)<1.5
+    METDphi = calc_dphi(a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy(), a['METPhi'].to_numpy())
+    a = a[abs(METDphi)<1.5]
+    cutflow['abs(metdphi)<1.5'] = len(a)
+
+    # MT window 180 -- 650 GeV
+    pt = a['JetsAK15.fCoordinates.fPt'][:,1].to_numpy()
+    eta = a['JetsAK15.fCoordinates.fEta'][:,1].to_numpy()
+    phi = a['JetsAK15.fCoordinates.fPhi'][:,1].to_numpy()
+    e = a['JetsAK15.fCoordinates.fE'][:,1].to_numpy()
+    
+    met = a['MET'].to_numpy()
+    metphi = a['METPhi'].to_numpy()
+    mt = calculate_mt(
+     pt, eta, phi, e,
+     met, metphi
+     )
+    a = a[(mt>180) & (mt<650)]
+    cutflow['180<mt<650'] = len(a)
+
+    cutflow['selection_deadcellstudy'] = len(a)
+
+    copy.array = a
+    logger.debug('cutflow:\n%s', pprint.pformat(copy.cutflow))
+    return copy
+
+
 def rhoddt_windowcuts(mt, pt, rho):
     cuts = (mt>200) & (mt<1000) & (pt>110) & (pt<1500) & (rho>-4) & (rho<0)
     return cuts
@@ -1290,9 +1372,12 @@ def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
     a['ak4_subl_eta'] = arr['Jets.fCoordinates.fEta'][:,1].to_numpy()
     a['ak4_subl_phi'] = arr['Jets.fCoordinates.fPhi'][:,1].to_numpy()
     a['ak4_subl_pt'] = arr['Jets.fCoordinates.fPt'][:,1].to_numpy()
-    a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
-    a['ak8_lead_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,0].to_numpy()
-    a['ak8_lead_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,0].to_numpy()
+    a['ak8_lead_pt'] = ak.fill_none(ak.firsts(arr['JetsAK8.fCoordinates.fPt']), -1).to_numpy()
+    a['ak8_lead_phi']= ak.fll_none(ak.firsts(arr['JetsAK8.fCoordinates.fPhi']), -1).to_numpy()
+    a['ak8_lead_eta']= ak.fll_none(ak.firsts(arr['JetsAK8.fCoordinates.fEta']), -1).to_numpy()
+    #a['ak8_lead_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,0].to_numpy()
+    #a['ak8_lead_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,0].to_numpy()
+    #a['ak8_lead_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,0].to_numpy()
     # a['ak8_subl_pt'] = arr['JetsAK8.fCoordinates.fPt'][:,1].to_numpy()
     # a['ak8_subl_phi'] = arr['JetsAK8.fCoordinates.fPhi'][:,1].to_numpy()
     # a['ak8_subl_eta'] = arr['JetsAK8.fCoordinates.fEta'][:,1].to_numpy()

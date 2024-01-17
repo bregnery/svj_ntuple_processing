@@ -533,6 +533,10 @@ def filter_preselection(array, single_muon_cr=False):
             a = a[(trigger_decisions == 1).any(axis=-1)]
         cutflow['triggers'] = len(a)
 
+    # At least 2 AK15 jets
+    a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
+    cutflow['n_ak15jets>=2'] = len(a)
+
     # 
     #JetsAK15_JetID criteria for tight selection cuts: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
     #a = a[a['JetsAK15_ID']>0]
@@ -540,15 +544,8 @@ def filter_preselection(array, single_muon_cr=False):
     #a = a[a['jetsak15_id']>0]
     #a = a[a['JetsAK15_ID'][:,1]>0]
     #cutflow['jetsak15_id'] = len(a)
-
-
     a = a[a['JetsAK15_ID'][:,1]>0.]
     cutflow['jetsak15_id'] = len(a)
-
-
-    # At least 2 AK15 jets
-    a = a[ak.count(a['JetsAK15.fCoordinates.fPt'], axis=-1) >= 2]
-    cutflow['n_ak15jets>=2'] = len(a)
 
     # At least 2 AK4 jets --> deadcells study
     a = a[ak.count(a['Jets.fCoordinates.fPt'], axis=-1) >= 2]
@@ -592,10 +589,10 @@ def filter_preselection(array, single_muon_cr=False):
         if len(a):
             a = a[ak.count(a['HLTMuonObjects.fCoordinates.fPt'], axis=-1) >= 1]
             a = a[calc_dr(
-                a['Muons.fCoordinates.fPt'][:,0].to_numpy(),
                 a['Muons.fCoordinates.fEta'][:,0].to_numpy(),
-                a['HLTMuonObjects.fCoordinates.fPt'][:,0].to_numpy(),
+                a['Muons.fCoordinates.fPhi'][:,0].to_numpy(),
                 a['HLTMuonObjects.fCoordinates.fEta'][:,0].to_numpy(),
+                a['HLTMuonObjects.fCoordinates.fPhi'][:,0].to_numpy(),
                 ) < .2]
         cutflow['singlemuon'] = len(a)
         a = a[a['NElectrons']==0]
@@ -1390,7 +1387,7 @@ def bdt_feature_columns(array, load_mc=True, save_scale_weights=False):
     # QCD high MET events 
     #a['CaloMET']        = arr['CaloMET'].to_numpy()
     #a['PFCaloMETRatio'] = arr['PFCaloMETRatio'].to_numpy()
-    a['lead_muonpt']    = arr['Muons.fCoordinates.fPt'].to_numpy()
+    a['lead_muonpt']    = ak.fill_none(ak.firsts(arr['Muons.fCoordinates.fPt']), -1.).to_numpy()
     a['nmuons']         = arr['NMuons'].to_numpy()
     a['nelectrons']     = arr['NElectrons'].to_numpy()
     '''a['lead_muoneta']   = arr['Muons.fCoordinates.fEta'][:,0].to_numpy()

@@ -824,7 +824,7 @@ def selection_plots(array):
     
 
 def selection_deadcells(array):
-    # to make the n-1 plots
+    # deadcells study with latest preselection cuts
     copy = array.copy()
     a = copy.array
     cutflow = copy.cutflow

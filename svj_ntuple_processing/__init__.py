@@ -135,6 +135,52 @@ dataqcd_phi_ecaldead[2016] = np.array([
        -3.142, -2.639, -1.759,  1.759,  0.126,  2.89 , -0.628,  0.628,
        -0.503,  0.88 , -2.513,  0.754, -1.257, -1.508, -2.136])
 
+
+def metadata_from_path(path):
+    """
+    Extracts metadata from a filename.
+    Not very robust but not much else to go on either.
+    """
+    meta = {}
+    path = osp.basename(path)
+
+    match = re.search(r'year(\d+)', path)
+    if match:
+        meta['year'] = int(match.group(1))
+    else:
+        meta['year'] = 2018
+
+    match = re.search(r'madpt(\d+)', path)
+    if match: meta['madpt'] = int(match.group(1))
+
+    match = re.search(r'MADPT(\d+)', path)
+    if match: meta['madpt'] = int(match.group(1))
+
+    match = re.search(r'genjetpt(\d+)', path)
+    if match:
+        meta['genjetpt'] = int(match.group(1))
+
+    match = re.search(r'mz(\d+)', path)
+    if match: meta['mz'] = int(match.group(1))
+
+    match = re.search(r'mMed-(\d+)', path)
+    if match: meta['mz'] = int(match.group(1))
+
+    match = re.search(r'mdark(\d+)', path)
+    if match: meta['mdark'] = int(match.group(1))
+
+    match = re.search(r'mDark-(\d+)', path)
+    if match: meta['mdark'] = int(match.group(1))
+
+    match = re.search(r'rinv(\d\.\d+)', path)
+    if match: meta['rinv'] = float(match.group(1))
+
+    match = re.search(r'rinv-(\d\.\d+)', path)
+    if match: meta['rinv'] = float(match.group(1))
+
+    return meta
+
+
 class Arrays:
     """
     Container class for an awkward.Array object + metadata about it.
@@ -367,6 +413,7 @@ def open_root(rootfile, load_gen=True, load_hlt=False, load_jerjec=False):
     # Store the order of trigger names in the array object
     arrays.trigger_branch = tree['TriggerPass'].title.split(',')
     arrays.metadata['src'] = rootfile
+    arrays.metadata.update(metadata_from_filename(rootfile))
     arrays.cut('raw')
     return arrays
 

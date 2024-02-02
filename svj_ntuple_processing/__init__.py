@@ -1246,6 +1246,7 @@ class Columns:
         self.arrays = {}
         self.metadata = {}
         self.cutflow = OrderedDict()
+        self._xs = None
 
     def __len__(self):
         for v in self.arrays.values():
@@ -1328,6 +1329,21 @@ class Columns:
         copy.arrays = self.arrays.copy()
         copy.cutflow = self.cutflow.copy()
         return copy
+
+    @property
+    def xs(self):
+        if 'bkg_type' in self.metadata:
+            raise NotImplementedError('XS not gettable for background')
+        if self._xs is None:
+            # Load the signal cross section polynomial
+            import requests
+            fit = np.poly1d(
+                requests
+                .get('https://raw.githubusercontent.com/boostedsvj/svj_madpt_crosssection/main/fit_madpt300.txt')
+                .json()
+                )
+            self._xs = fit(self.metadata['mz'])
+        return self._xs
 
 
 def load_numpy(infile, features):

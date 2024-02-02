@@ -196,6 +196,7 @@ class Arrays:
         self.trigger_branch = None
         self.cutflow = OrderedDict()
         self.metadata = {'year' : 2018}
+        self._xs = None
 
     def __len__(self):
         return len(self.array)
@@ -232,6 +233,21 @@ class Arrays:
     @property
     def triggers(self):
         return triggers_per_year[self.year]
+
+    @property
+    def xs(self):
+        if 'bkg_type' in self.metadata:
+            raise NotImplementedError('XS not gettable for background')
+        if self._xs is None:
+            # Load the signal cross section polynomial
+            import requests
+            fit = np.poly1d(
+                requests
+                .get('https://raw.githubusercontent.com/boostedsvj/svj_madpt_crosssection/main/fit_madpt300.txt')
+                .json()
+                )
+            self._xs = fit(self.metadata['mz'])
+        return self._xs
 
 
 @contextmanager
@@ -413,7 +429,7 @@ def open_root(rootfile, load_gen=True, load_hlt=False, load_jerjec=False):
     # Store the order of trigger names in the array object
     arrays.trigger_branch = tree['TriggerPass'].title.split(',')
     arrays.metadata['src'] = rootfile
-    arrays.metadata.update(metadata_from_filename(rootfile))
+    arrays.metadata.update(metadata_from_path(rootfile))
     arrays.cut('raw')
     return arrays
 

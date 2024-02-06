@@ -1255,6 +1255,11 @@ class Columns:
     def __repr__(self):
         return '<Columns {0}>'.format(pprint.pformat(self.metadata))
 
+    def select(self, where):
+        the_copy = self.copy()
+        the_copy.arrays = {k: v[where] for k, v in self.arrays.items()}
+        return the_copy
+
     def save(self, outfile):
         import seutils
         do_stageout = False

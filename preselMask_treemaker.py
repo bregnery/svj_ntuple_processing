@@ -19,7 +19,7 @@ from collections import OrderedDict
 from hadd import expand_wildcards, logger
 
 # Program specific functions
-def save_mask(mask, outfile):
+def save_mask(presel_mask, train_val_test_mask, outfile):
     do_stageout = False
     if seutils.path.has_protocol(outfile):
         remote_outfile = outfile
@@ -35,7 +35,8 @@ def save_mask(mask, outfile):
 
     np.savez(
         outfile,
-        mask = mask
+        presel_mask = presel_mask,
+        train_val_test_mask = train_val_test_mask
         )
 
     if do_stageout:
@@ -173,10 +174,39 @@ def preselection_mask(array, single_muon_cr=False):
     # return copy, mask # magri e' utile di avere il cutflow
 
     print("made mask")
-    print(sum(1 for event in mask if event)) # count the number of true entries
     mask = ak.to_numpy(mask, allow_missing=True)
     print(sum(1 for event in mask if event)) # count the number of true entries
     return mask 
+
+def make_train_val_test(length, train_frac, val_frac, test_frac, random_seed=None):
+    """Make a mask for splitting the data into train, validation, and test data sets
+
+    Args:
+        length (int): length of the number of events to be split
+        train_frac (float): fraction of the events to go into the training dataset
+        val_frac (float): fraction of the events to go into the validation dataset
+        test_frac (float): fraction of the events to go into the test dataset
+    
+    Returns:
+        numpy.ndarray: Array containing values 0, 1, and 2 indicating the dataset for each event
+    """
+    assert train_frac + val_frac + test_frac == 1.0, "Fractions must sum up to 1.0"
+
+    train_size = int(train_frac * length)
+    val_size = int(val_frac * length)
+    test_size = int(test_frac * length)
+
+    # create an array of dataset labels
+    dataset = np.zeros(length, dtype=int)
+    dataset[train_size:train_size + val_size] = 1
+    dataset[train_size + val_size:train_size + val_size + test_size] = 2
+
+    # Shuffle the array to randomize the ordering
+    if random_seed is not None:
+        np.random.seed(random_seed)
+    np.random.shuffle(dataset)
+
+    return dataset
 
 def process_rootfile(the_args):
 
@@ -187,11 +217,15 @@ def process_rootfile(the_args):
     array = svj.open_root(rootfile)
 
     # apply preselection and get a mask
-    mask = preselection_mask(array)
+    presel_mask = preselection_mask(array)
+
+    # make a train, validation, test mask based on splittings by Rob and Cesare
+    train_val_test_mask = make_train_val_test(sum(1 for event in presel_mask if event), 0.75, 0.075, 0.175, random_seed=34560)
+    print(len(train_val_test_mask))
 
     # Save the mask of events that pass the preselection 
     # make sure the output file has the same name as the input file + mask 
-    save_mask(mask, dst)
+    save_mask(presel_mask, train_val_test_mask, dst)
     print("saved mask for "+rootfile)
 
 

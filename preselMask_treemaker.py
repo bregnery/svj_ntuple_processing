@@ -3,6 +3,8 @@
 #----------------------------------------------------------------------------------------
 # Author(s): Brendan Regnery, Thomas Klijnsma -------------------------------------------
 #----------------------------------------------------------------------------------------
+# Local prorgram for making the preselection masks on signal data -----------------------
+#----------------------------------------------------------------------------------------
 
 # Imports
 import svj_ntuple_processing as svj
@@ -18,7 +20,10 @@ from contextlib import contextmanager
 from collections import OrderedDict
 from hadd import expand_wildcards, logger
 
+#----------------------------------------------------------------------------------------
 # Program specific functions
+#----------------------------------------------------------------------------------------
+
 def save_mask(presel_mask, train_val_test_mask, outfile):
     do_stageout = False
     if seutils.path.has_protocol(outfile):
@@ -228,6 +233,9 @@ def process_rootfile(the_args):
     save_mask(presel_mask, train_val_test_mask, dst)
     print("saved mask for "+rootfile)
 
+#----------------------------------------------------------------------------------------
+# Main Function
+#----------------------------------------------------------------------------------------
 
 def main():
 
